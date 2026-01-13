@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TriPlan | 32-Week Journey to 70.3</title>
+    <meta name="description" content="Professional triathlon training plan for your 70.3 Ironman journey. Track your swim, bike, and run workouts across 32 weeks of structured training.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        surface: {
+                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
+                            400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155',
+                            800: '#1e293b', 900: '#0f172a', 950: '#020617'
+                        },
+                        sport: {
+                            swim: '#0ea5e9',
+                            bike: '#22c55e',
+                            run: '#f97316',
+                            brick: '#a855f7',
+                            strength: '#ec4899',
+                            rest: '#64748b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .nav-glass { backdrop-filter: blur(12px); background: rgba(15, 23, 42, 0.95); }
+        .card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .session-card { transition: all 0.15s ease; }
+        .session-card:hover { transform: translateY(-1px); }
+        .scrollbar-thin::-webkit-scrollbar { width: 4px; height: 4px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.4); border-radius: 4px; }
+        
+        input, select, textarea { 
+            background-color: rgba(15, 23, 42, 0.6) !important; 
+            border-color: rgba(51, 65, 85, 0.6) !important; 
+            color: #e2e8f0 !important; 
+        }
+        input:focus, select:focus, textarea:focus { 
+            border-color: rgba(100, 116, 139, 0.8) !important; 
+            outline: none !important;
+            box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.2) !important; 
+        }
+        
+        /* Session card styles with GOOD contrast - white text on colored backgrounds */
+        .session-swim { background-color: #0ea5e9; color: white; border-color: #0284c7; }
+        .session-bike { background-color: #22c55e; color: white; border-color: #16a34a; }
+        .session-run { background-color: #f97316; color: white; border-color: #ea580c; }
+        .session-brick { background-color: #a855f7; color: white; border-color: #9333ea; }
+        .session-strength { background-color: #ec4899; color: white; border-color: #db2777; }
+        .session-rest { background-color: rgba(100, 116, 139, 0.3); color: #94a3b8; border-color: rgba(100, 116, 139, 0.4); }
+        
+        .session-card.done { opacity: 0.5; }
+        
+        /* Drag and drop styles */
+        .session-card { cursor: move; user-select: none; }
+        .session-card.rescheduled { border-left: 3px solid rgba(234, 179, 8, 0.6); }
+        .day-container { transition: all 0.2s ease; }
+        .day-container.drag-over { 
+            background-color: rgba(100, 116, 139, 0.2); 
+            border: 2px dashed rgba(100, 116, 139, 0.6);
+            transform: scale(1.02);
+        }
+        .drag-handle { cursor: grab; }
+        .drag-handle:active { cursor: grabbing; }
+        
+        /* Completion Rate Slider */
+        .slider-custom {
+            background: linear-gradient(to right, 
+                #ef4444 0%, 
+                #f97316 25%, 
+                #eab308 50%, 
+                #84cc16 75%, 
+                #22c55e 100%);
+            outline: none;
+        }
+        .slider-custom::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            border: 2px solid #1e293b;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .slider-custom::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            border: 2px solid #1e293b;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;  
+            overflow: hidden;
+        }
+
+        #weekQuickNavScroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            scroll-behavior: smooth;
+        }
+        #weekQuickNavScroll::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="h-full bg-surface-950 text-surface-200 antialiased">
+    <div id="app" class="min-h-full flex flex-col pb-20 sm:pb-0">
+        <!-- Navigation - Consistent header -->
+        <nav class="sticky top-0 z-50 nav-glass border-b border-surface-800">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-14">
+                    <!-- Logo -->
+                    <a href="/" class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-surface-800 flex items-center justify-center">
+                            <span class="text-sm">🏊</span>
+                        </div>
+                        <div class="hidden sm:block">
+                            <h1 class="font-semibold text-surface-100 text-sm">TriPlan</h1>
+                            <p class="text-xs text-surface-500 -mt-0.5">70.3 Zell am See</p>
+                        </div>
+                    </a>
+                    
+                    <!-- Desktop Nav - Centered -->
+                    <div class="hidden sm:flex items-center gap-1 bg-surface-900/50 rounded-lg p-1">
+                        <a href="/" class="px-4 py-1.5 text-sm font-medium rounded-md bg-surface-700 text-surface-100">Plan</a>
+                        <a href="/profile" class="px-4 py-1.5 text-sm font-medium rounded-md text-surface-400 hover:text-surface-200 hover:bg-surface-800/50 transition">Profile</a>
+                        <a href="/stats" class="px-4 py-1.5 text-sm font-medium rounded-md text-surface-400 hover:text-surface-200 hover:bg-surface-800/50 transition">Stats</a>
+                    </div>
+
+                    <!-- Week indicator -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-surface-500">Week</span>
+                        <span class="text-sm font-semibold text-surface-100 bg-surface-800 px-2 py-0.5 rounded" id="currentWeekBadge">1</span>
+                        <span class="text-sm text-surface-600">/32</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
+            <!-- Season Progress -->
+            <div class="card rounded-xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-medium text-surface-400 uppercase tracking-wide">Season Progress</span>
+                    <span class="text-xs font-semibold text-surface-300" id="progressPercent">3%</span>
+                </div>
+                <div class="relative h-2 bg-surface-800 rounded-full overflow-hidden">
+                    <div class="absolute inset-y-0 left-0 bg-surface-400 rounded-full transition-all duration-500" id="progressBar" style="width: 3%"></div>
+                    <div class="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-orange-500 border-2 border-surface-950" style="left: calc(28.125% - 5px)" title="Half Marathon"></div>
+                    <div class="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-purple-500 border-2 border-surface-950" style="left: calc(59.375% - 5px)" title="Olympic Tri"></div>
+                    <div class="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-sky-500 border-2 border-surface-950" style="left: calc(100% - 5px)" title="70.3"></div>
+                </div>
+                <div class="flex justify-between mt-2 text-xs text-surface-500">
+                    <span>Jan 26</span>
+                    <span class="text-orange-400 font-medium">HM W9</span>
+                    <span class="text-purple-400 font-medium">Oly W19</span>
+                    <span class="text-sky-400 font-medium">70.3 W32</span>
+                </div>
+            </div>
+
+            <!-- Weekly Summary -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="card rounded-lg p-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">⏱️</span>
+                        <div>
+                            <div class="text-xl font-semibold text-surface-100" id="weeklyHours">0.0/8h</div>
+                            <div class="text-xs text-surface-500">Hours</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card rounded-lg p-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">📋</span>
+                        <div>
+                            <div class="text-xl font-semibold text-surface-100" id="weeklySessions">0/7</div>
+                            <div class="text-xs text-surface-500">Sessions</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card rounded-lg p-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">✓</span>
+                        <div>
+                            <div class="text-xl font-semibold text-surface-100" id="weeklyCompletion">0%</div>
+                            <div class="text-xs text-surface-500">Done</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Week Navigation - Sleek Compact Version -->
+            <div class="card rounded-2xl overflow-hidden border-surface-800/60 shadow-xl">
+                <div class="flex flex-col">
+                    <!-- Top Bar: Current Context & Navigation -->
+                    <div class="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-5 bg-surface-900/60 transition-colors duration-300" id="weekNavHeader">
+                        <div class="flex items-center gap-4">
+                            <!-- Prev Button -->
+                            <button onclick="prevWeek()" class="w-10 h-10 rounded-xl bg-surface-800 hover:bg-surface-700 border border-surface-700/50 flex items-center justify-center transition-all active:scale-95 group shrink-0">
+                                <svg class="w-5 h-5 text-surface-400 group-hover:text-surface-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            
+                            <!-- Context Area -->
+                            <div class="flex flex-col min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                                    <h2 class="text-xl font-bold text-surface-50 tracking-tight whitespace-nowrap" id="weekTitle">Week 1</h2>
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-surface-800 text-surface-400 uppercase tracking-widest border border-surface-700/30 whitespace-nowrap" id="phaseBadge">Base Phase 1</span>
+                                </div>
+                                <div class="text-xs font-medium text-surface-500 mt-1" id="weekDates">Jan 26 - Feb 1</div>
+                            </div>
+                            
+                            <!-- Next Button -->
+                            <button onclick="nextWeek()" class="w-10 h-10 rounded-xl bg-surface-800 hover:bg-surface-700 border border-surface-700/50 flex items-center justify-center transition-all active:scale-95 group shrink-0">
+                                <svg class="w-5 h-5 text-surface-400 group-hover:text-surface-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- Right Side: Focus Area (Compact & Sleek) -->
+                        <div class="flex-1 md:flex-none flex items-center gap-4 p-3.5 bg-surface-800/40 rounded-xl border border-surface-700/30 backdrop-blur-sm relative overflow-hidden group" id="weekNotes">
+                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-surface-700/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                            <div class="w-10 h-10 rounded-xl bg-surface-800/80 flex items-center justify-center text-xl shadow-inner relative z-10" id="weekFocusIcon">🎯</div>
+                            <div class="min-w-0 relative z-10">
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <span class="text-[10px] font-bold text-surface-500 uppercase tracking-wider">Focus</span>
+                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-surface-900/80 border border-surface-700/50 shadow-sm" id="weekLoad">Medium</span>
+                                </div>
+                                <p class="text-[13px] text-surface-200 font-medium leading-tight line-clamp-2 md:max-w-xs" id="weekNotesText">Loading week focus details...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Bar: Week Timeline -->
+                    <div class="bg-surface-950/40 px-4 py-3 border-t border-surface-800/40 relative">
+                        <div class="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-surface-950/40 to-transparent z-10 pointer-events-none"></div>
+                        <div class="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-surface-950/40 to-transparent z-10 pointer-events-none"></div>
+                        <div class="overflow-x-auto scrollbar-thin pb-2 pt-1 -mx-2 px-2 scroll-smooth" id="weekQuickNavScroll">
+                            <div class="flex gap-2 min-w-max items-center px-2" id="weekQuickNav">
+                                <!-- Populated via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3" id="calendarGrid"></div>
+        </main>
+
+        <!-- Mobile Nav - Consistent with other pages -->
+        <nav class="sm:hidden fixed bottom-0 inset-x-0 nav-glass border-t border-surface-800 z-50 safe-area-bottom">
+            <div class="flex justify-around py-2 px-4">
+                <a href="/" class="flex flex-col items-center gap-0.5 px-4 py-1.5 text-surface-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span class="text-xs font-medium">Plan</span>
+                </a>
+                <a href="/profile" class="flex flex-col items-center gap-0.5 px-4 py-1.5 text-surface-500 hover:text-surface-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span class="text-xs font-medium">Profile</span>
+                </a>
+                <a href="/stats" class="flex flex-col items-center gap-0.5 px-4 py-1.5 text-surface-500 hover:text-surface-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span class="text-xs font-medium">Stats</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Session Modal -->
+        <div id="sessionModal" class="fixed inset-0 z-50 hidden">
+            <div class="absolute inset-0 bg-surface-950/90 backdrop-blur-sm" onclick="closeModal()"></div>
+            <div class="absolute inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-lg sm:max-h-[90vh]">
+                <div class="h-full sm:h-auto card rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-full border-surface-700">
+                    <div class="flex items-center justify-between p-4 border-b border-surface-800">
+                        <h3 class="text-base font-semibold text-surface-100" id="modalTitle">Session</h3>
+                        <button onclick="closeModal()" class="w-8 h-8 rounded-lg hover:bg-surface-800 flex items-center justify-center transition text-surface-400 hover:text-surface-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-4 scrollbar-thin" id="modalContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/plan-generator.js"></script>
+    <script src="./js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+{
+  "profile": {
+    "name": "Athlete",
+    "age": 28,
+    "weight_kg": 75,
+    "max_hr": 192
+  },
+  "metrics": {
+    "ftp_watts": 220,
+    "ftp_test_date": "2026-01-13",
+    "css_seconds_per_100m": 125,
+    "css_test_date": null,
+    "run_5k_seconds": 1656,
+    "run_5k_test_date": null,
+    "run_10k_seconds": 3612,
+    "run_10k_test_date": null,
+    "threshold_pace_per_km_seconds": 315,
+    "easy_pace_per_km_seconds": 360,
+    "updated_at": "2026-01-13T07:30:53.177Z",
+    "test_type": "ftp",
+    "value": 220
+  },
+  "testingHistory": [
+    {
+      "id": 1768289453177,
+      "test_type": "ftp",
+      "value": 220,
+      "unit": "",
+      "test_date": "2026-01-13",
+      "notes": null,
+      "created_at": "2026-01-13T07:30:53.177Z"
+    }
+  ],
+  "sessionLogs": {
+    "tue_bike_1": {
+      "session_id": "tue_bike",
+      "week_number": 1,
+      "session_date": "2026-01-27",
+      "session_type": "bike",
+      "completed": 1,
+      "skipped": 0,
+      "skip_reason": null,
+      "actual_duration_min": 60,
+      "actual_distance_km": 28.5,
+      "actual_avg_hr": 148,
+      "actual_max_hr": null,
+      "actual_pace_sec_per_km": null,
+      "foot_numbness_onset_km": null,
+      "walk_breaks_taken": null,
+      "actual_avg_power": 180,
+      "actual_np_power": 195,
+      "actual_tss": null,
+      "actual_css_pace": null,
+      "actual_distance_m": null,
+      "bike_duration_min": null,
+      "run_duration_min": null,
+      "rpe": 6,
+      "fatigue_before": null,
+      "fatigue_after": null,
+      "notes": "Good tempo intervals",
+      "activity_url": null,
+      "updated_at": "2026-01-13T07:30:44.122Z"
+    }
+  },
+  "weeklyCheckins": {},
+  "raceResults": [],
+  "sessionScheduleOverrides": {
+    "w1_swim_css_test_1": {
+      "session_id": "w1_swim_css_test",
+      "week_number": 1,
+      "new_date": "2026-01-29",
+      "updated_at": "2026-01-13T09:47:54.953Z"
+    },
+    "w1_strength_full_body_baseline_1": {
+      "session_id": "w1_strength_full_body_baseline",
+      "week_number": 1,
+      "new_date": "2026-01-28",
+      "updated_at": "2026-01-13T09:50:55.546Z"
+    },
+    "w1_run_baseline_5k_tt_1": {
+      "session_id": "w1_run_baseline_5k_tt",
+      "week_number": 1,
+      "new_date": "2026-01-30",
+      "updated_at": "2026-01-13T09:24:17.824Z"
+    }
+  }
+}

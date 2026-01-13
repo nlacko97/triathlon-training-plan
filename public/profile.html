@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | TriPlan</title>
+    <meta name="description" content="Track your performance metrics, training zones, and personal records for triathlon training.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        surface: {
+                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
+                            400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155',
+                            800: '#1e293b', 900: '#0f172a', 950: '#020617'
+                        },
+                        sport: {
+                            swim: '#0ea5e9',
+                            bike: '#22c55e',
+                            run: '#f97316'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .nav-glass { backdrop-filter: blur(12px); background: rgba(15, 23, 42, 0.9); }
+        .card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(51, 65, 85, 0.5); }
+        input, select, textarea { 
+            background-color: rgba(15, 23, 42, 0.6) !important; 
+            border-color: rgba(51, 65, 85, 0.6) !important; 
+            color: #e2e8f0 !important; 
+        }
+        input:focus, select:focus, textarea:focus { 
+            border-color: rgba(100, 116, 139, 0.8) !important; 
+            outline: none !important;
+            box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.2) !important; 
+        }
+        .sport-swim { color: #0ea5e9; }
+        .sport-bike { color: #22c55e; }
+        .sport-run { color: #f97316; }
+        .bg-sport-swim { background-color: rgba(14, 165, 233, 0.1); border-color: rgba(14, 165, 233, 0.25); }
+        .bg-sport-bike { background-color: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.25); }
+        .bg-sport-run { background-color: rgba(249, 115, 22, 0.1); border-color: rgba(249, 115, 22, 0.25); }
+    </style>
+</head>
+<body class="h-full bg-surface-950 text-surface-200 antialiased">
+    <div class="min-h-full flex flex-col pb-20 sm:pb-0">
+        <!-- Nav - Consistent with Plan page -->
+        <nav class="sticky top-0 z-50 nav-glass border-b border-surface-800">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-14">
+                    <!-- Logo -->
+                    <a href="/" class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-surface-800 flex items-center justify-center">
+                            <span class="text-sm">🏊</span>
+                        </div>
+                        <div class="hidden sm:block">
+                            <h1 class="font-semibold text-surface-100 text-sm">TriPlan</h1>
+                            <p class="text-xs text-surface-500 -mt-0.5">70.3 Zell am See</p>
+                        </div>
+                    </a>
+                    
+                    <!-- Desktop Nav - Centered -->
+                    <div class="hidden sm:flex items-center gap-1 bg-surface-900/50 rounded-lg p-1">
+                        <a href="/" class="px-4 py-1.5 text-sm font-medium rounded-md text-surface-400 hover:text-surface-200 hover:bg-surface-800/50 transition">Plan</a>
+                        <a href="/profile" class="px-4 py-1.5 text-sm font-medium rounded-md bg-surface-700 text-surface-100">Profile</a>
+                        <a href="/stats" class="px-4 py-1.5 text-sm font-medium rounded-md text-surface-400 hover:text-surface-200 hover:bg-surface-800/50 transition">Stats</a>
+                    </div>
+                    
+                    <!-- Spacer for balance -->
+                    <div class="w-8 sm:w-20"></div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
+            <!-- Performance Metrics -->
+            <div class="card rounded-xl p-5">
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-base font-semibold text-surface-100">Performance Metrics</h2>
+                    <span class="text-xs text-surface-500">Update after test sessions</span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <!-- FTP -->
+                    <div class="bg-[#22c55e] border border-[#16a34a] rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center text-xl">🚴</div>
+                            <div>
+                                <h3 class="font-bold text-white text-sm uppercase tracking-wider">Bike FTP</h3>
+                                <p class="text-white/70 text-[10px] font-medium uppercase">Threshold Power</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col mb-4">
+                            <div class="text-4xl font-black text-white leading-none tracking-tighter" id="ftpValue">212W</div>
+                            <div class="text-sm text-white/80 font-semibold mt-1" id="ftpWkg">2.83 W/kg</div>
+                        </div>
+                        <button onclick="openTest('ftp')" class="w-full bg-white/20 hover:bg-white/30 text-white py-2.5 rounded-lg text-sm font-bold transition-all border border-white/10">
+                            Log FTP Test
+                        </button>
+                    </div>
+
+                    <!-- CSS -->
+                    <div class="bg-[#0ea5e9] border border-[#0284c7] rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center text-xl">🏊</div>
+                            <div>
+                                <h3 class="font-bold text-white text-sm uppercase tracking-wider">Swim CSS</h3>
+                                <p class="text-white/70 text-[10px] font-medium uppercase">Critical Speed</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col mb-4">
+                            <div class="text-4xl font-black text-white leading-none tracking-tighter" id="cssValue">2:05</div>
+                            <div class="text-sm text-white/80 font-semibold mt-1">per 100m</div>
+                        </div>
+                        <button onclick="openTest('css')" class="w-full bg-white/20 hover:bg-white/30 text-white py-2.5 rounded-lg text-sm font-bold transition-all border border-white/10">
+                            Log CSS Test
+                        </button>
+                    </div>
+
+                    <!-- Run -->
+                    <div class="bg-[#f97316] border border-[#ea580c] rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center text-xl">🏃</div>
+                            <div>
+                                <h3 class="font-bold text-white text-sm uppercase tracking-wider">Run Pace</h3>
+                                <p class="text-white/70 text-[10px] font-medium uppercase">Threshold Pace</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col mb-4">
+                            <div class="text-4xl font-black text-white leading-none tracking-tighter" id="thresholdPace">5:15</div>
+                            <div class="text-sm text-white/80 font-semibold mt-1">per km</div>
+                        </div>
+                        <button onclick="openTest('run')" class="w-full bg-white/20 hover:bg-white/30 text-white py-2.5 rounded-lg text-sm font-bold transition-all border border-white/10">
+                            Log Run Test
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRs -->
+            <div class="card rounded-xl p-5">
+                <h2 class="text-base font-semibold text-surface-100 mb-4">Personal Records</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="text-center p-3 bg-surface-800/30 rounded-lg">
+                        <div class="text-xl font-bold text-surface-100" id="pr5k">27:36</div>
+                        <div class="text-xs text-surface-500 mt-0.5">5K Run</div>
+                    </div>
+                    <div class="text-center p-3 bg-surface-800/30 rounded-lg">
+                        <div class="text-xl font-bold text-surface-100" id="pr10k">1:00:12</div>
+                        <div class="text-xs text-surface-500 mt-0.5">10K Run</div>
+                    </div>
+                    <div class="text-center p-3 bg-surface-800/30 rounded-lg">
+                        <div class="text-xl font-bold text-surface-400" id="prHm">—</div>
+                        <div class="text-xs text-surface-500 mt-0.5">Half Marathon</div>
+                    </div>
+                    <div class="text-center p-3 bg-surface-800/30 rounded-lg">
+                        <div class="text-xl font-bold text-surface-100">192</div>
+                        <div class="text-xs text-surface-500 mt-0.5">Max HR</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Zones -->
+            <div class="card rounded-xl p-5">
+                <h2 class="text-base font-semibold text-surface-100 mb-4">Training Zones</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                        <h3 class="font-medium sport-bike text-sm mb-2">🚴 Bike Power</h3>
+                        <div class="space-y-1.5 text-sm" id="bikeZones">
+                            <div class="flex justify-between text-surface-400"><span>Z2 Endurance</span><span class="text-surface-200">117-159W</span></div>
+                            <div class="flex justify-between text-surface-400"><span>Z3 Tempo</span><span class="text-surface-200">159-190W</span></div>
+                            <div class="flex justify-between text-surface-400"><span>Z4 Threshold</span><span class="text-surface-200">190-212W</span></div>
+                            <div class="flex justify-between text-surface-400"><span>Z5 VO2max</span><span class="text-surface-200">212-254W</span></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-medium sport-swim text-sm mb-2">🏊 Swim Pace</h3>
+                        <div class="space-y-1.5 text-sm" id="swimZones">
+                            <div class="flex justify-between text-surface-400"><span>Aerobic</span><span class="text-surface-200">2:15-2:25</span></div>
+                            <div class="flex justify-between text-surface-400"><span>Tempo</span><span class="text-surface-200">2:08-2:15</span></div>
+                            <div class="flex justify-between text-surface-400"><span>Threshold</span><span class="text-surface-200">2:00-2:08</span></div>
+                            <div class="flex justify-between text-surface-400"><span>Speed</span><span class="text-surface-200">&lt;2:00</span></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-medium sport-run text-sm mb-2">🏃 Run Pace</h3>
+                        <div class="space-y-1.5 text-sm" id="runZones">
+                            <div class="flex justify-between text-surface-400"><span>Easy</span><span class="text-surface-200">5:45-6:15</span></div>
+                            <div class="flex justify-between text-surface-400"><span>Marathon</span><span class="text-surface-200">5:25-5:45</span></div>
+                            <div class="flex justify-between text-surface-400"><span>Threshold</span><span class="text-surface-200">5:00-5:25</span></div>
+                            <div class="flex justify-between text-surface-400"><span>VO2max</span><span class="text-surface-200">&lt;5:00</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test History -->
+            <div class="card rounded-xl p-5">
+                <h2 class="text-base font-semibold text-surface-100 mb-4">Test History</h2>
+                <div class="space-y-2" id="testHistory">
+                    <p class="text-surface-500 text-sm">No tests logged yet.</p>
+                </div>
+            </div>
+
+            <!-- Athlete Info -->
+            <div class="card rounded-xl p-5">
+                <h2 class="text-base font-semibold text-surface-100 mb-4">Athlete Info</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-xs text-surface-400 mb-1">Weight (kg)</label>
+                        <input type="number" id="weight" value="75" step="0.1" class="w-full rounded-md text-sm px-3 py-2 border">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-surface-400 mb-1">Age</label>
+                        <input type="number" id="age" value="28" class="w-full rounded-md text-sm px-3 py-2 border">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-surface-400 mb-1">Max HR</label>
+                        <input type="number" id="maxHr" value="192" class="w-full rounded-md text-sm px-3 py-2 border">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="saveProfile()" class="w-full bg-surface-700 hover:bg-surface-600 text-surface-100 py-2 rounded-md text-sm font-medium transition">
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Mobile Nav -->
+        <nav class="sm:hidden fixed bottom-0 inset-x-0 nav-glass border-t border-surface-800 z-50">
+            <div class="flex justify-around py-2 px-4">
+                <a href="/" class="flex flex-col items-center gap-0.5 px-4 py-1.5 text-surface-500">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span class="text-xs font-medium">Plan</span>
+                </a>
+                <a href="/profile" class="flex flex-col items-center gap-0.5 px-4 py-1.5 text-surface-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span class="text-xs font-medium">Profile</span>
+                </a>
+                <a href="/stats" class="flex flex-col items-center gap-0.5 px-4 py-1.5 text-surface-500">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span class="text-xs font-medium">Stats</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Test Modal -->
+        <div id="testModal" class="fixed inset-0 z-50 hidden">
+            <div class="absolute inset-0 bg-surface-950/90 backdrop-blur-sm" onclick="closeTest()"></div>
+            <div class="absolute inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-md">
+                <div class="h-full sm:h-auto card rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-full border-surface-700">
+                    <div class="flex items-center justify-between p-4 border-b border-surface-800">
+                        <h3 class="text-base font-semibold text-surface-100" id="testModalTitle">Log Test</h3>
+                        <button onclick="closeTest()" class="w-7 h-7 rounded-md hover:bg-surface-800 flex items-center justify-center text-surface-400 hover:text-surface-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-4" id="testModalContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let metrics = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadProfile();
+            await loadHistory();
+        });
+
+        async function loadProfile() {
+            try {
+                const res = await fetch('/api/profile');
+                if (res.ok) {
+                    const data = await res.json();
+                    metrics = data.metrics;
+                    updateDisplay();
+                    if (data.profile) {
+                        document.getElementById('weight').value = data.profile.weight_kg || 75;
+                        document.getElementById('age').value = data.profile.age || 28;
+                        document.getElementById('maxHr').value = data.profile.max_hr || 192;
+                    }
+                }
+            } catch (e) {
+                metrics = { ftp_watts: 212, css_seconds_per_100m: 125, threshold_pace_per_km_seconds: 315 };
+                updateDisplay();
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/testing-history');
+                if (res.ok) {
+                    const data = await res.json();
+                    renderHistory(data);
+                }
+            } catch (e) {}
+        }
+
+        function updateDisplay() {
+            if (!metrics) return;
+            const fmt = s => `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+            
+            document.getElementById('ftpValue').textContent = `${metrics.ftp_watts || 212}W`;
+            document.getElementById('ftpWkg').textContent = `${((metrics.ftp_watts || 212) / 75).toFixed(2)} W/kg`;
+            document.getElementById('cssValue').textContent = fmt(metrics.css_seconds_per_100m || 125);
+            document.getElementById('thresholdPace').textContent = fmt(metrics.threshold_pace_per_km_seconds || 315);
+            
+            if (metrics.run_5k_seconds) document.getElementById('pr5k').textContent = fmt(metrics.run_5k_seconds);
+            if (metrics.run_10k_seconds) {
+                const s = metrics.run_10k_seconds;
+                document.getElementById('pr10k').textContent = `${Math.floor(s/3600)}:${Math.floor((s%3600)/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+            }
+            
+            updateZones();
+        }
+
+        function updateZones() {
+            const ftp = metrics?.ftp_watts || 212;
+            const css = metrics?.css_seconds_per_100m || 125;
+            const tp = metrics?.threshold_pace_per_km_seconds || 315;
+            const fmt = s => `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+            
+            document.getElementById('bikeZones').innerHTML = [
+                ['Z2 Endurance', `${Math.round(ftp*0.55)}-${Math.round(ftp*0.75)}W`],
+                ['Z3 Tempo', `${Math.round(ftp*0.75)}-${Math.round(ftp*0.90)}W`],
+                ['Z4 Threshold', `${Math.round(ftp*0.90)}-${ftp}W`],
+                ['Z5 VO2max', `${ftp}-${Math.round(ftp*1.20)}W`]
+            ].map(([n,v]) => `<div class="flex justify-between text-surface-400"><span>${n}</span><span class="text-surface-200">${v}</span></div>`).join('');
+            
+            document.getElementById('swimZones').innerHTML = [
+                ['Aerobic', `${fmt(Math.round(css*1.08))}-${fmt(Math.round(css*1.15))}`],
+                ['Tempo', `${fmt(Math.round(css*1.02))}-${fmt(Math.round(css*1.08))}`],
+                ['Threshold', `${fmt(Math.round(css*0.96))}-${fmt(css)}`],
+                ['Speed', `<${fmt(Math.round(css*0.96))}`]
+            ].map(([n,v]) => `<div class="flex justify-between text-surface-400"><span>${n}</span><span class="text-surface-200">${v}</span></div>`).join('');
+            
+            document.getElementById('runZones').innerHTML = [
+                ['Easy', `${fmt(Math.round(tp*1.10))}-${fmt(Math.round(tp*1.20))}`],
+                ['Marathon', `${fmt(Math.round(tp*1.03))}-${fmt(Math.round(tp*1.10))}`],
+                ['Threshold', `${fmt(Math.round(tp*0.95))}-${fmt(Math.round(tp*1.03))}`],
+                ['VO2max', `<${fmt(Math.round(tp*0.95))}`]
+            ].map(([n,v]) => `<div class="flex justify-between text-surface-400"><span>${n}</span><span class="text-surface-200">${v}</span></div>`).join('');
+        }
+
+        function renderHistory(data) {
+            const el = document.getElementById('testHistory');
+            if (!data.length) return;
+            const icons = { ftp: '🚴', css: '🏊', run_5k: '🏃', run_10k: '🏃' };
+            const names = { ftp: 'FTP', css: 'CSS', run_5k: '5K', run_10k: '10K' };
+            el.innerHTML = data.slice(0, 8).map(t => `
+                <div class="flex items-center justify-between p-3 bg-surface-800/30 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <span class="text-lg">${icons[t.test_type] || '📊'}</span>
+                        <div>
+                            <div class="font-medium text-sm text-surface-100">${names[t.test_type] || t.test_type}</div>
+                            <div class="text-xs text-surface-500">${new Date(t.test_date).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                    <div class="text-right font-semibold text-surface-100">${t.value}${t.unit}</div>
+                </div>
+            `).join('');
+        }
+
+        function openTest(type) {
+            const modal = document.getElementById('testModal');
+            const title = document.getElementById('testModalTitle');
+            const content = document.getElementById('testModalContent');
+            
+            const forms = {
+                ftp: {
+                    title: 'Log FTP Test',
+                    html: `
+                        <div class="space-y-4">
+                            <p class="text-sm text-surface-400">Enter your 20-minute power. FTP = 20min × 0.95</p>
+                            <div>
+                                <label class="block text-xs text-surface-400 mb-1">20-Min Power (W)</label>
+                                <input type="number" id="tFtpPower" class="w-full rounded-md text-sm px-3 py-2 border" placeholder="e.g. 223">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-surface-400 mb-1">Date</label>
+                                <input type="date" id="tDate" class="w-full rounded-md text-sm px-3 py-2 border" value="${new Date().toISOString().split('T')[0]}">
+                            </div>
+                            <button onclick="saveFtp()" class="w-full bg-sport-bike hover:opacity-80 text-white py-2.5 rounded-md font-medium">Save FTP</button>
+                        </div>
+                    `
+                },
+                css: {
+                    title: 'Log CSS Test',
+                    html: `
+                        <div class="space-y-4">
+                            <p class="text-sm text-surface-400">Enter 400m and 200m TT times. CSS = (400m - 200m) / 2</p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs text-surface-400 mb-1">400m (mm:ss)</label>
+                                    <input type="text" id="t400" class="w-full rounded-md text-sm px-3 py-2 border" placeholder="6:40">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-surface-400 mb-1">200m (mm:ss)</label>
+                                    <input type="text" id="t200" class="w-full rounded-md text-sm px-3 py-2 border" placeholder="3:10">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-surface-400 mb-1">Date</label>
+                                <input type="date" id="tDate" class="w-full rounded-md text-sm px-3 py-2 border" value="${new Date().toISOString().split('T')[0]}">
+                            </div>
+                            <button onclick="saveCss()" class="w-full bg-sport-swim hover:opacity-80 text-white py-2.5 rounded-md font-medium">Save CSS</button>
+                        </div>
+                    `
+                },
+                run: {
+                    title: 'Log Run Test',
+                    html: `
+                        <div class="space-y-4">
+                            <p class="text-sm text-surface-400">Log a 5K or 10K time trial to update training paces.</p>
+                            <div>
+                                <label class="block text-xs text-surface-400 mb-1">Distance</label>
+                                <select id="tRunDist" class="w-full rounded-md text-sm px-3 py-2 border">
+                                    <option value="5k">5K</option>
+                                    <option value="10k">10K</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-surface-400 mb-1">Time (mm:ss or h:mm:ss)</label>
+                                <input type="text" id="tRunTime" class="w-full rounded-md text-sm px-3 py-2 border" placeholder="27:36 or 1:00:12">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-surface-400 mb-1">Date</label>
+                                <input type="date" id="tDate" class="w-full rounded-md text-sm px-3 py-2 border" value="${new Date().toISOString().split('T')[0]}">
+                            </div>
+                            <button onclick="saveRun()" class="w-full bg-sport-run hover:opacity-80 text-white py-2.5 rounded-md font-medium">Save Run Test</button>
+                        </div>
+                    `
+                }
+            };
+            
+            const f = forms[type];
+            title.textContent = f.title;
+            content.innerHTML = f.html;
+            modal.classList.remove('hidden');
+        }
+
+        function closeTest() { document.getElementById('testModal').classList.add('hidden'); }
+
+        function parseTime(s) {
+            const p = s.split(':').map(Number);
+            return p.length === 2 ? p[0]*60 + p[1] : p[0]*3600 + p[1]*60 + p[2];
+        }
+
+        async function saveFtp() {
+            const p = parseInt(document.getElementById('tFtpPower').value);
+            if (!p) return alert('Enter power');
+            const ftp = Math.round(p * 0.95);
+            const date = document.getElementById('tDate').value;
+            
+            try {
+                await fetch('/api/metrics', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ftp_watts: ftp, ftp_test_date: date, test_type: 'ftp', value: ftp, unit: 'W', test_date: date })
+                });
+            } catch (e) {}
+            
+            await loadProfile();
+            await loadHistory();
+            closeTest();
+            alert(`FTP: ${ftp}W`);
+        }
+
+        async function saveCss() {
+            const t400 = parseTime(document.getElementById('t400').value);
+            const t200 = parseTime(document.getElementById('t200').value);
+            if (!t400 || !t200) return alert('Enter times');
+            const css = Math.round((t400 - t200) / 2);
+            const date = document.getElementById('tDate').value;
+            
+            try {
+                await fetch('/api/metrics', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ css_seconds_per_100m: css, css_test_date: date, test_type: 'css', value: css, unit: 's', test_date: date })
+                });
+            } catch (e) {}
+            
+            await loadProfile();
+            await loadHistory();
+            closeTest();
+            alert(`CSS: ${Math.floor(css/60)}:${(css%60).toString().padStart(2,'0')}/100m`);
+        }
+
+        async function saveRun() {
+            const dist = document.getElementById('tRunDist').value;
+            const secs = parseTime(document.getElementById('tRunTime').value);
+            if (!secs) return alert('Enter time');
+            const date = document.getElementById('tDate').value;
+            
+            const km = dist === '5k' ? 5 : 10;
+            const pace = secs / km;
+            const tp = dist === '5k' ? Math.round(pace * 1.05) : Math.round(pace);
+            
+            const data = {
+                threshold_pace_per_km_seconds: tp,
+                easy_pace_per_km_seconds: Math.round(tp * 1.15),
+                test_type: `run_${dist}`,
+                value: secs,
+                unit: 's',
+                test_date: date
+            };
+            if (dist === '5k') data.run_5k_seconds = secs;
+            else data.run_10k_seconds = secs;
+            
+            try {
+                await fetch('/api/metrics', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            } catch (e) {}
+            
+            await loadProfile();
+            await loadHistory();
+            closeTest();
+            alert(`${dist.toUpperCase()} saved!`);
+        }
+
+        async function saveProfile() {
+            try {
+                await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        weight_kg: parseFloat(document.getElementById('weight').value),
+                        age: parseInt(document.getElementById('age').value),
+                        max_hr: parseInt(document.getElementById('maxHr').value)
+                    })
+                });
+                alert('Saved!');
+            } catch (e) { alert('Error'); }
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTest(); });
+    </script>
+</body>
+</html>

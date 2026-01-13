@@ -1,0 +1,361 @@
+{
+  "planMetadata": {
+    "version": "1.0",
+    "createdDate": "2026-01-12",
+    "startDate": "2026-01-26",
+    "endDate": "2026-08-30",
+    "totalWeeks": 32,
+    "athleteLevel": "age_group",
+    "targetRaces": 3,
+    "timeConstraintHoursPerWeek": {
+      "minimum": 7,
+      "target": 9,
+      "maximum": 12
+    }
+  },
+  "athleteProfile": {
+    "demographics": {
+      "age": 28,
+      "gender": "male",
+      "weightKg": 75,
+      "trainingAgeYears": 1,
+      "athleteType": "time_crunched_age_grouper"
+    },
+    "baselineMetrics": {
+      "bike": {
+        "ftpWatts": 212,
+        "ftpWkg": 2.83,
+        "lastTested": "2025-07-01"
+      },
+      "run": {
+        "maxHR": 192,
+        "hardEffortHR": "typically does not reach 190 bpm",
+        "prs": {
+          "5K": "27:36",
+          "10K": "1:00:12"
+        }
+      },
+      "swim": {
+        "currentCSS": "2:05/100m",
+        "targetCSS": {
+          "olympic": "1:55/100m",
+          "half_ironman": "2:00/100m"
+        }
+      }
+    },
+    "trainingEnvironment": {
+      "location": "Cluj-Napoca, Romania",
+      "workSchedule": "full_time_professional",
+      "trainingWindows": {
+        "morning": "max 60 minutes",
+        "midday": "30-50 minutes (flexible)",
+        "weekends": "primary long session time"
+      },
+      "poolAccess": {
+        "frequency": "1-2x/week realistic",
+        "travelTime": "40 minute swim = 2 hours total",
+        "timing": "afternoon only"
+      },
+      "trainingPartners": "primarily solo"
+    },
+    "constraints": {
+      "weekdaySessionMaxMinutes": 60,
+      "footNumbnessOnsetKm": 4,
+      "disciplinePriorities": [
+        { "discipline": "run", "priority": 1, "frequency": "3x/week mandatory" },
+        { "discipline": "swim", "priority": 2, "frequency": "2x/week minimum" },
+        { "discipline": "bike", "priority": 3, "frequency": "3-4x/week" },
+        { "discipline": "strength", "priority": 4, "frequency": "1-2x/week" },
+        { "discipline": "climbing", "priority": 5, "frequency": "1x/week" }
+      ]
+    }
+  },
+  "races": [
+    {
+      "id": "half_marathon_training",
+      "name": "Half Marathon",
+      "date": "2026-03-28",
+      "weekNumber": 9,
+      "type": "run",
+      "distanceKm": 21.1,
+      "goalTime": "1:59:59",
+      "targetPaceMinPerKm": "5:40",
+      "purpose": "training_race",
+      "priority": "medium"
+    },
+    {
+      "id": "olympic_triathlon",
+      "name": "Olympic Triathlon",
+      "date": "2026-06-06",
+      "weekNumber": 19,
+      "type": "triathlon",
+      "distance": { "swimKm": 1.5, "bikeKm": 40, "runKm": 10 },
+      "goalTime": "2:50:00",
+      "stretchGoalTime": "2:35:00",
+      "targets": {
+        "swim": { "time": "28:00", "pace": "1:55/100m" },
+        "bike": { "time": "72:00", "speed": "32 km/h", "npPower": 165 },
+        "run": { "time": "52:00", "pace": "5:12/km" },
+        "transitions": "3:00"
+      },
+      "courseType": "flat",
+      "priority": "high"
+    },
+    {
+      "id": "zell_am_see_70_3",
+      "name": "70.3 Zell am See",
+      "date": "2026-08-30",
+      "weekNumber": 32,
+      "type": "triathlon",
+      "distance": { "swimKm": 1.9, "bikeKm": 90, "runKm": 21.1 },
+      "goalTime": "5:30:00",
+      "stretchGoalTime": "5:15:00",
+      "targets": {
+        "swim": { "time": "38:00", "pace": "2:00/100m" },
+        "bike": { "time": "2:55:00", "speed": "30.8 km/h", "npPower": 155 },
+        "run": { "time": "1:52:00", "pace": "5:20/km" },
+        "transitions": "4:00"
+      },
+      "courseProfile": {
+        "bikeElevationMeters": 1000,
+        "runElevationMeters": 0
+      },
+      "priority": "highest"
+    }
+  ],
+  "trainingPhases": [
+    {
+      "phaseId": "base_half_marathon",
+      "name": "Base Phase - Half Marathon Focus",
+      "weeks": "1-9",
+      "focus": "run_volume",
+      "keySessions": ["sunday_long_run", "wednesday_threshold_run"],
+      "weeklyStructure": {
+        "monday": ["rest"],
+        "tuesday": ["bike_threshold"],
+        "wednesday": ["run_threshold"],
+        "thursday": ["swim"],
+        "friday": ["bike_easy"],
+        "saturday": ["bike_long"],
+        "sunday": ["run_long", "climbing"]
+      },
+      "hourlyLoad": { "min": 7, "max": 9 },
+      "priorityRace": "half_marathon"
+    },
+    {
+      "phaseId": "olympic_specific",
+      "name": "Olympic Triathlon Specific Phase",
+      "weeks": "10-18",
+      "focus": "triathlon_specificity",
+      "keySessions": ["saturday_brick", "wednesday_threshold_run"],
+      "weeklyStructure": {
+        "monday": ["rest"],
+        "tuesday": ["bike_threshold"],
+        "wednesday": ["run_threshold"],
+        "thursday": ["swim_css"],
+        "friday": ["run_easy"],
+        "saturday": ["olympic_brick"],
+        "sunday": ["run_long"]
+      },
+      "hourlyLoad": { "min": 8, "max": 11 },
+      "priorityRace": "olympic_triathlon"
+    },
+    {
+      "phaseId": "olympic_taper",
+      "name": "Olympic Taper & Race",
+      "weeks": "19",
+      "focus": "taper",
+      "keySessions": ["olympic_race"],
+      "hourlyLoad": { "target": 4 },
+      "priorityRace": "olympic_triathlon"
+    },
+    {
+      "phaseId": "recovery_70_3_build",
+      "name": "70.3 Base Build",
+      "weeks": "20-25",
+      "focus": "volume_build",
+      "keySessions": ["sunday_long_run", "bike_threshold"],
+      "hourlyLoad": { "min": 7, "max": 10 },
+      "priorityRace": "zell_am_see_70_3"
+    },
+    {
+      "phaseId": "70_3_specific",
+      "name": "70.3 Specific Phase",
+      "weeks": "26-31",
+      "focus": "long_bricks",
+      "keySessions": ["saturday_long_brick", "sunday_long_run"],
+      "hourlyLoad": { "min": 9, "max": 12 },
+      "priorityRace": "zell_am_see_70_3"
+    },
+    {
+      "phaseId": "70_3_taper",
+      "name": "70.3 Taper & Race",
+      "weeks": "32",
+      "focus": "taper",
+      "keySessions": ["70_3_race"],
+      "hourlyLoad": { "target": 4 },
+      "priorityRace": "zell_am_see_70_3"
+    }
+  ],
+  "sessionTemplates": {
+    "run": {
+      "threshold_miles": {
+        "id": "run_threshold_miles",
+        "title": "Threshold: Mile Repeats",
+        "description": "4-6 x 1 mile @ 5:00-5:15/km with 90 sec walking recovery",
+        "intensity": "threshold",
+        "targetRPE": 7,
+        "progression": {
+          "weeks1_8": { "intervals": 4, "restSeconds": 90 },
+          "weeks10_18": { "intervals": 5, "restSeconds": 90 },
+          "weeks26_32": { "intervals": 6, "restSeconds": 60 }
+        },
+        "focus": "lactate_clearance"
+      },
+      "long_run": {
+        "id": "run_long_weekly",
+        "title": "Long Run",
+        "description": "Progressive distance from 10K → 18K at 5:30-5:45/km pace",
+        "intensity": "endurance",
+        "frequency": "1x/week",
+        "progression": {
+          "weeks1_9": [10, 11, 12, 10, 12, 13, 14, 12, 10],
+          "weeks10_19": [12, 13, 14, 12, 10, 12, 13, 8, 10],
+          "weeks20_32": [12, 13, 14, 12, 14, 16, 18, 14, 16, 18, 15, 12, 10, 8]
+        },
+        "paceTargets": {
+          "olympic": "5:12/km",
+          "70_3": "5:20/km"
+        }
+      }
+    },
+    "bike": {
+      "threshold_intervals": {
+        "id": "bike_threshold_intervals",
+        "title": "Threshold Intervals",
+        "description": "3-5 x 10-15 min @ 85-95% FTP with recovery",
+        "intensity": "threshold",
+        "progression": {
+          "weeks1_9": { "intervals": 3, "durationMin": 10, "power": "85% FTP" },
+          "weeks10_18": { "intervals": 4, "durationMin": 12, "power": "90% FTP" },
+          "weeks26_32": { "intervals": 5, "durationMin": 15, "power": "92% FTP" }
+        }
+      },
+      "long_endurance": {
+        "id": "bike_long_endurance",
+        "title": "Long Endurance Ride",
+        "description": "90-240 min Z2 endurance, hilly routes for 70.3 prep",
+        "intensity": "endurance",
+        "nutritionPractice": {
+          "startWeek": 20,
+          "carbsPerHour": 60
+        }
+      }
+    },
+    "swim": {
+      "css_test": {
+        "id": "swim_css_test",
+        "title": "CSS Test",
+        "description": "400m TT + 200m TT to establish Critical Swim Speed",
+        "frequency": "every4weeks",
+        "testing": true
+      },
+      "css_main_set": {
+        "id": "swim_css_main_set",
+        "title": "CSS Main Set",
+        "description": "8 x 200m @ CSS + 15 sec rest + technique drills",
+        "focus": "aerobic_capacity_and_technique",
+        "techniqueRatio": "40%"
+      }
+    },
+    "brick": {
+      "olympic_simulation": {
+        "id": "olympic_simulation",
+        "title": "Olympic Distance Brick",
+        "bikeDurationMin": 75,
+        "bikePower": "165W NP (76% FTP)",
+        "runDurationMin": 20,
+        "runPace": "5:12/km",
+        "frequency": "1x/week",
+        "phase": "olympic_specific"
+      },
+      "70_3_long_brick": {
+        "id": "70_3_long_brick",
+        "title": "70.3 Long Brick",
+        "bikeDurationMin": 180,
+        "bikePower": "155W NP (73% FTP)",
+        "runDurationMin": 45,
+        "runPace": "5:20/km",
+        "frequency": "1x/week",
+        "phase": "70_3_specific"
+      }
+    }
+  },
+  "keyTrainingMetrics": {
+    "weeklyFrequencyTargets": {
+      "run": { "target": 3, "mandatory": true, "neverMiss": true },
+      "swim": { "target": 2, "mandatory": false, "note": "3x is a stretch" },
+      "bike": { "target": 3, "mandatory": false },
+      "strength": { "target": 1, "mandatory": false, "min": 1 }
+    },
+    "criticalSessions": [
+      {
+        "session": "wednesday_threshold_run",
+        "rule": "Never skip unless injured or severely ill",
+        "priority": "highest"
+      },
+      {
+        "session": "sunday_long_run",
+        "rule": "Distance must be within 10% of target",
+        "priority": "high"
+      }
+    ]
+  },
+  "healthAndInjury": {
+    "currentIssues": {
+      "footNumbness": {
+        "description": "Begins at km 3-4 during runs",
+        "status": "monitoring_shoe_change_week_1",
+        "protocol": "15min walk breaks, track onset distance",
+        "threshold": "If occurs before 8K, reduce long run 20%"
+      }
+    },
+    "injuryHistory": "none_significant",
+    "recovery": {
+      "sleepTarget": "7-8 hours/night",
+      "mandatoryRestDay": "Monday (or post-adventure)",
+      "fatigueMonitoring": "weekly_subjective_1_to_10",
+      "redFlags": [
+        "elevated_resting_hr_plus_10bpm",
+        "persistent_pain",
+        "motivation_loss_greater_than_3days"
+      ]
+    }
+  },
+  "nutrition": {
+    "olympic": {
+      "preRaceCarbsGrams": 60,
+      "preRaceTiming": "2 hours before",
+      "bikeCarbsPerHour": 35,
+      "runStrategy": "1 gel at T2"
+    },
+    "halfIronman": {
+      "preRaceCarbsGrams": 100,
+      "preRaceTiming": "3 hours before",
+      "bikeCarbsPerHour": 70,
+      "runGelFrequency": "every_30min",
+      "totalRunGels": 6
+    }
+  },
+  "successMetrics": {
+    "process": {
+      "threeRunsPerWeek": "zero_misses_for_32_weeks",
+      "threeSwimsPerWeek": "minimum_2x_even_if_short",
+      "strengthCompliance": "minimum_1x_per_week"
+    },
+    "performance": {
+      "olympicTriathlon": { "success": "sub_2_50", "stretch": "sub_2_35" },
+      "halfIronman": { "success": "sub_5_30", "stretch": "sub_5_15" }
+    }
+  }
+}
