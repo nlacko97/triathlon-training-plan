@@ -310,13 +310,16 @@
         }
 
         function updateDisplay() {
-            if (!metrics) return;
-            const fmt = s => `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
-            
-            document.getElementById('ftpValue').textContent = `${metrics.ftp_watts || 212}W`;
-            document.getElementById('ftpWkg').textContent = `${((metrics.ftp_watts || 212) / 75).toFixed(2)} W/kg`;
-            document.getElementById('cssValue').textContent = fmt(metrics.css_seconds_per_100m || 125);
-            document.getElementById('thresholdPace').textContent = fmt(metrics.threshold_pace_per_km_seconds || 315);
+             if (!metrics) return;
+             const fmt = s => `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+             
+             const ftp = metrics.ftp_watts || 212;
+             const weight = metrics.ftp_weight_kg || 75;
+             
+             document.getElementById('ftpValue').textContent = `${ftp}W`;
+             document.getElementById('ftpWkg').textContent = `${(ftp / weight).toFixed(2)} W/kg`;
+             document.getElementById('cssValue').textContent = fmt(metrics.css_seconds_per_100m || 125);
+             document.getElementById('thresholdPace').textContent = fmt(metrics.threshold_pace_per_km_seconds || 315);
             
             if (metrics.run_5k_seconds) document.getElementById('pr5k').textContent = fmt(metrics.run_5k_seconds);
             if (metrics.run_10k_seconds) {
@@ -375,25 +378,39 @@
         }
 
         function openTest(type) {
-            const modal = document.getElementById('testModal');
-            const title = document.getElementById('testModalTitle');
-            const content = document.getElementById('testModalContent');
+             const modal = document.getElementById('testModal');
+             const title = document.getElementById('testModalTitle');
+             const content = document.getElementById('testModalContent');
+             
+             // Preload weight from current athlete profile
+             const currentWeight = document.getElementById('weight').value || 75;
             
             const forms = {
                 ftp: {
                     title: 'Log FTP Test',
                     html: `
                         <div class="space-y-4">
-                            <p class="text-sm text-surface-400">Enter your 20-minute power. FTP = 20min × 0.95</p>
                             <div>
-                                <label class="block text-xs text-surface-400 mb-1">20-Min Power (W)</label>
-                                <input type="number" id="tFtpPower" class="w-full rounded-md text-sm px-3 py-2 border" placeholder="e.g. 223">
+                                <label class="block text-xs text-surface-400 mb-1">Test Type</label>
+                                <select id="tFtpType" class="w-full rounded-md text-sm px-3 py-2 border" onchange="updateFtpLabel()">
+                                    <option value="ramp">Ramp Test (direct FTP value)</option>
+                                    <option value="20min">20-Min Test (FTP = power × 0.95)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-surface-400 mb-1" id="tFtpLabel">FTP (W)</label>
+                                <input type="number" id="tFtpPower" class="w-full rounded-md text-sm px-3 py-2 border" placeholder="e.g. 212">
+                                <p class="text-xs text-surface-500 mt-1" id="tFtpHint">Direct FTP from MyWhoosh or power meter</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-surface-400 mb-1">Weight (kg)</label>
+                                <input type="number" id="tFtpWeight" step="0.1" class="w-full rounded-md text-sm px-3 py-2 border" value="${currentWeight}">
                             </div>
                             <div>
                                 <label class="block text-xs text-surface-400 mb-1">Date</label>
                                 <input type="date" id="tDate" class="w-full rounded-md text-sm px-3 py-2 border" value="${new Date().toISOString().split('T')[0]}">
                             </div>
-                            <button onclick="saveFtp()" class="w-full bg-sport-bike hover:opacity-80 text-white py-2.5 rounded-md font-medium">Save FTP</button>
+                            <button onclick="saveFtp()" class="w-full bg-sport-bike hover:opacity-80 text-white py-2.5 rounded-md font-medium">Save FTP Test</button>
                         </div>
                     `
                 },
@@ -455,29 +472,68 @@
         function closeTest() { document.getElementById('testModal').classList.add('hidden'); }
 
         function parseTime(s) {
-            const p = s.split(':').map(Number);
-            return p.length === 2 ? p[0]*60 + p[1] : p[0]*3600 + p[1]*60 + p[2];
-        }
+             const p = s.split(':').map(Number);
+             return p.length === 2 ? p[0]*60 + p[1] : p[0]*3600 + p[1]*60 + p[2];
+         }
+         
+         function updateFtpLabel() {
+             const testType = document.getElementById('tFtpType')?.value || 'ramp';
+             const label = document.getElementById('tFtpLabel');
+             const hint = document.getElementById('tFtpHint');
+             
+             if (testType === 'ramp') {
+                 label.textContent = 'FTP (W)';
+                 hint.textContent = 'Direct FTP from MyWhoosh or power meter';
+             } else {
+                 label.textContent = '20-Minute Power (W)';
+                 hint.textContent = 'Your average power over 20 minutes';
+             }
+         }
 
         async function saveFtp() {
-            const p = parseInt(document.getElementById('tFtpPower').value);
-            if (!p) return alert('Enter power');
-            const ftp = Math.round(p * 0.95);
-            const date = document.getElementById('tDate').value;
-            
-            try {
-                await fetch('/api/metrics', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ftp_watts: ftp, ftp_test_date: date, test_type: 'ftp', value: ftp, unit: 'W', test_date: date })
-                });
-            } catch (e) {}
-            
-            await loadProfile();
-            await loadHistory();
-            closeTest();
-            alert(`FTP: ${ftp}W`);
-        }
+             const testType = document.getElementById('tFtpType').value;
+             const power = parseInt(document.getElementById('tFtpPower').value);
+             const weight = parseFloat(document.getElementById('tFtpWeight').value);
+             const date = document.getElementById('tDate').value;
+             
+             if (!power || !weight) return alert('Enter power and weight');
+             
+             // Calculate FTP based on test type
+             let ftp = power;
+             if (testType === '20min') {
+                 ftp = Math.round(power * 0.95);
+             }
+             // For ramp test, use the power directly
+             
+             const wkg = (ftp / weight).toFixed(2);
+             
+             try {
+                 await fetch('/api/metrics', {
+                     method: 'PUT',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({ 
+                         ftp_watts: ftp, 
+                         ftp_test_date: date, 
+                         ftp_test_type: testType,
+                         ftp_weight_kg: weight,
+                         test_type: 'ftp', 
+                         value: ftp, 
+                         unit: 'W', 
+                         test_date: date,
+                         notes: `${testType === 'ramp' ? 'Ramp Test' : '20-Min Test'} - ${weight}kg - ${wkg} W/kg`
+                     })
+                 });
+             } catch (e) {
+                 console.error('Error saving FTP:', e);
+                 alert('Error saving FTP test');
+                 return;
+             }
+             
+             await loadProfile();
+             await loadHistory();
+             closeTest();
+             alert(`FTP: ${ftp}W (${wkg} W/kg @ ${weight}kg)`);
+         }
 
         async function saveCss() {
             const t400 = parseTime(document.getElementById('t400').value);

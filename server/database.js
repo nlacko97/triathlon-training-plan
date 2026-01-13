@@ -20,6 +20,8 @@ const defaultData = {
   metrics: {
     ftp_watts: 212,
     ftp_test_date: null,
+    ftp_test_type: 'ramp',
+    ftp_weight_kg: 75,
     css_seconds_per_100m: 125,
     css_test_date: null,
     run_5k_seconds: 1656,
@@ -34,7 +36,8 @@ const defaultData = {
   sessionLogs: {},
   weeklyCheckins: {},
   raceResults: [],
-  sessionScheduleOverrides: {}
+  sessionScheduleOverrides: {},
+  customWorkouts: {}
 };
 
 // Ensure data directory exists
@@ -289,6 +292,36 @@ const dbHelpers = {
     const key = `${sessionId}_${weekNumber}`;
     if (data.sessionScheduleOverrides[key]) {
       delete data.sessionScheduleOverrides[key];
+      saveData(data);
+      return { success: true };
+    }
+    return { success: false };
+  },
+
+  // Custom workouts - allow users to override or add new workouts
+  upsertCustomWorkout: (workoutData) => {
+    const key = `${workoutData.session_id}_${workoutData.week_number}`;
+    data.customWorkouts[key] = {
+      ...workoutData,
+      updated_at: new Date().toISOString()
+    };
+    saveData(data);
+    return { success: true };
+  },
+
+  getCustomWorkout: (sessionId, weekNumber) => {
+    const key = `${sessionId}_${weekNumber}`;
+    return data.customWorkouts[key] || null;
+  },
+
+  getAllCustomWorkouts: () => {
+    return data.customWorkouts;
+  },
+
+  deleteCustomWorkout: (sessionId, weekNumber) => {
+    const key = `${sessionId}_${weekNumber}`;
+    if (data.customWorkouts[key]) {
+      delete data.customWorkouts[key];
       saveData(data);
       return { success: true };
     }
