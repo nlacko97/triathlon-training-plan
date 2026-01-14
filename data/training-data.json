@@ -16,11 +16,43 @@
     "run_10k_test_date": null,
     "threshold_pace_per_km_seconds": 315,
     "easy_pace_per_km_seconds": 360,
-    "updated_at": "2026-01-13T07:30:53.177Z",
+    "updated_at": "2026-01-13T12:16:17.178Z",
     "test_type": "ftp",
-    "value": 220
+    "value": 220,
+    "unit": "W",
+    "test_date": "2026-01-13",
+    "ftp_test_type": "20min",
+    "ftp_weight_kg": 74.5,
+    "notes": "20-Min Test - 74.5kg - 2.95 W/kg"
   },
   "testingHistory": [
+    {
+      "id": 1768306577178,
+      "test_type": "ftp",
+      "value": 220,
+      "unit": "W",
+      "test_date": "2026-01-13",
+      "notes": "20-Min Test - 74.5kg - 2.95 W/kg",
+      "created_at": "2026-01-13T12:16:17.178Z"
+    },
+    {
+      "id": 1768306538559,
+      "test_type": "ftp",
+      "value": 212,
+      "unit": "W",
+      "test_date": "2026-01-13",
+      "notes": "Ramp Test - 75kg - 2.83 W/kg",
+      "created_at": "2026-01-13T12:15:38.559Z"
+    },
+    {
+      "id": 1768306249072,
+      "test_type": "ftp",
+      "value": 201,
+      "unit": "W",
+      "test_date": "2025-07-24",
+      "notes": null,
+      "created_at": "2026-01-13T12:10:49.072Z"
+    },
     {
       "id": 1768289453177,
       "test_type": "ftp",
@@ -83,5 +115,6 @@
       "new_date": "2026-01-30",
       "updated_at": "2026-01-13T09:24:17.824Z"
     }
-  }
+  },
+  "customWorkouts": {}
 }

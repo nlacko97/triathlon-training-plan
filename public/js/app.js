@@ -7,12 +7,15 @@ let currentWeek = 1;
 let sessionLogs = {};
 let currentMetrics = null;
 let scheduleOverrides = {};
+let customWorkouts = {};
+let currentEditingSession = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   initWeekNavigation();
   await loadCurrentMetrics();
   await loadSessionLogs();
   await loadScheduleOverrides();
+  await loadCustomWorkouts();
   loadWeek(1);
 });
 
@@ -58,6 +61,17 @@ async function loadScheduleOverrides() {
     }
   } catch (err) {
     console.log("Offline mode - no schedule overrides");
+  }
+}
+
+async function loadCustomWorkouts() {
+  try {
+    const response = await fetch("/api/custom-workouts");
+    if (response.ok) {
+      customWorkouts = await response.json();
+    }
+  } catch (err) {
+    console.log("Offline mode - no custom workouts");
   }
 }
 
@@ -264,7 +278,7 @@ function renderCalendar(week) {
 
   week.dates.days.forEach((day) => {
     // Get sessions for this day, considering schedule overrides
-    const sessions = week.sessions.filter((s) => {
+    let sessions = week.sessions.filter((s) => {
       const overrideKey = `${s.id}_${week.weekNumber}`;
       const override = scheduleOverrides[overrideKey];
       
@@ -276,6 +290,28 @@ function renderCalendar(week) {
       // Otherwise, use the original day assignment
       return s.day === day.dayName;
     });
+
+    // Apply custom workout overrides
+    sessions = sessions.map(s => {
+      const customKey = `${s.id}_${week.weekNumber}`;
+      if (customWorkouts[customKey]) {
+        return { ...s, ...customWorkouts[customKey], isCustomized: true };
+      }
+      return s;
+    });
+
+    // Get any custom workouts added to this day that aren't in the plan
+    const customSessionsForDay = Object.values(customWorkouts).filter(cw => 
+      cw.week_number === week.weekNumber && 
+      cw.date === day.date &&
+      !sessions.find(s => s.id === cw.session_id)
+    ).map(cw => ({
+      ...cw,
+      id: cw.session_id,
+      isCustom: true,
+      isCustomized: true
+    }));
+    sessions = [...sessions, ...customSessionsForDay];
 
     const el = document.createElement("div");
     el.className = "card rounded-lg overflow-hidden day-container";
@@ -293,16 +329,25 @@ function renderCalendar(week) {
       .map((s) => renderSession(s, week.weekNumber))
       .join("");
     
+    // Add "Add Workout" button
+    const addButton = document.createElement('button');
+    addButton.className = 'w-full py-1.5 text-xs text-surface-500 hover:text-surface-300 hover:bg-surface-800/30 rounded transition border border-dashed border-surface-700 mt-1.5';
+    addButton.innerHTML = '+ Add Workout';
+    addButton.onclick = (e) => {
+      e.stopPropagation();
+      openWorkoutEditor(null, week.weekNumber, day.date, day.dayName);
+    };
+    
     el.innerHTML = `
-            <div class="bg-surface-800/50 px-3 py-2 border-b border-surface-800/50">
-                <div class="font-medium text-surface-200 text-sm">${day.dayName.slice(
-                  0,
-                  3
-                )}</div>
-                <div class="text-xs text-surface-500">${day.displayDate}</div>
+            <div class="bg-surface-800/50 px-3 py-2 border-b border-surface-800/50 flex items-center justify-between">
+                <div>
+                    <div class="font-medium text-surface-200 text-sm">${day.dayName.slice(0, 3)}</div>
+                    <div class="text-xs text-surface-500">${day.displayDate}</div>
+                </div>
             </div>
         `;
     el.appendChild(sessionsContainer);
+    sessionsContainer.appendChild(addButton);
     grid.appendChild(el);
   });
 }
@@ -338,25 +383,31 @@ function renderSession(session, weekNum) {
     
     const config = sportConfig[session.type] || { css: 'session-rest', icon: '📋' };
     
-    const log = sessionLogs[`${session.id}_${weekNum}`];
+    // Ensure we have a valid session ID
+    const sessionId = session.id || session.session_id;
+    const log = sessionLogs[`${sessionId}_${weekNum}`];
     const done = log?.completed;
     const skipped = log?.skipped;
     
     const duration = session.duration || session.totalDuration || 0;
     
-    // Check if this session has been rescheduled
-    const overrideKey = `${session.id}_${weekNum}`;
+    // Check if this session has been rescheduled or customized
+    const overrideKey = `${sessionId}_${weekNum}`;
     const isRescheduled = scheduleOverrides[overrideKey] !== undefined;
+    const isCustomized = session.isCustomized || session.isCustom;
+    
+    // Escape quotes in session data for onclick attributes
+    const sessionDate = (session.date || '').replace(/'/g, "\\'");
+    const sessionDay = (session.day || session.dayName || '').replace(/'/g, "\\'");
     
     return `
-        <div class="session-card ${config.css} border rounded-md p-2.5 cursor-move ${done ? 'done' : ''} ${isRescheduled ? 'rescheduled' : ''}"
+        <div class="session-card ${config.css} border rounded-md p-2.5 cursor-move ${done ? 'done' : ''} ${isRescheduled ? 'rescheduled' : ''} ${isCustomized ? 'border-l-2 border-l-yellow-400' : ''}"
              draggable="true"
-             data-session-id="${session.id}"
+             data-session-id="${sessionId}"
              data-week-num="${weekNum}"
              ondragstart="handleDragStart(event)"
-             ondragend="handleDragEnd(event)"
-             onclick="event.stopPropagation(); openModal('${session.id}', ${weekNum})">
-            <div class="flex items-center justify-between gap-2">
+             ondragend="handleDragEnd(event)">
+            <div class="flex items-center justify-between gap-2" onclick="event.stopPropagation(); openModal('${sessionId}', ${weekNum})">
                 <div class="flex items-center gap-2 min-w-0">
                     <span class="text-sm flex-shrink-0 drag-handle" title="Drag to reschedule">${config.icon}</span>
                     <div class="min-w-0">
@@ -365,11 +416,16 @@ function renderSession(session, weekNum) {
                     </div>
                 </div>
                 <div class="flex items-center gap-1 flex-shrink-0">
+                    ${isCustomized ? '<span class="text-xs opacity-70" title="Customized">✏️</span>' : ''}
                     ${isRescheduled ? '<span class="text-xs opacity-60" title="Rescheduled">↻</span>' : ''}
                     ${done ? '<span class="text-xs opacity-80">✓</span>' : ''}
                     ${skipped ? '<span class="text-xs opacity-80">✕</span>' : ''}
                 </div>
             </div>
+            <button onclick="event.stopPropagation(); openWorkoutEditor('${sessionId}', ${weekNum}, '${sessionDate}', '${sessionDay}')" 
+                    class="w-full mt-1.5 py-0.5 text-[10px] text-surface-400 hover:text-surface-200 hover:bg-white/10 rounded transition">
+                Edit Workout
+            </button>
         </div>
     `;
 }
@@ -380,8 +436,30 @@ function renderSession(session, weekNum) {
 
 function openModal(sessionId, weekNum) {
   const week = TrainingPlanAPI.getWeek(weekNum);
-  const session = week.sessions.find((s) => s.id === sessionId);
+  let session = week.sessions.find((s) => s.id === sessionId);
+  
+  // If not found in generated plan, check if it's a custom workout
+  if (!session) {
+    const customKey = `${sessionId}_${weekNum}`;
+    if (customWorkouts[customKey]) {
+      const customWorkout = customWorkouts[customKey];
+      session = {
+        ...customWorkout,
+        id: customWorkout.session_id || customWorkout.id,
+        date: customWorkout.date,
+        day: customWorkout.day || customWorkout.dayName,
+        type: customWorkout.type
+      };
+    }
+  }
+  
   if (!session) return;
+  
+  // Apply custom workout overrides if they exist (for modified generated workouts)
+  const customKey = `${sessionId}_${weekNum}`;
+  if (customWorkouts[customKey] && week.sessions.find((s) => s.id === sessionId)) {
+    session = { ...session, ...customWorkouts[customKey] };
+  }
 
   const log = sessionLogs[`${sessionId}_${weekNum}`] || {};
   const modal = document.getElementById("sessionModal");
@@ -683,7 +761,27 @@ function renderTypeFields(session, log) {
 
 async function saveSession(sessionId, weekNum, completed, skipped = false) {
   const week = TrainingPlanAPI.getWeek(weekNum);
-  const session = week.sessions.find((s) => s.id === sessionId);
+  let session = week.sessions.find((s) => s.id === sessionId);
+  
+  // If not found in generated plan, check if it's a custom workout
+  if (!session) {
+    const customKey = `${sessionId}_${weekNum}`;
+    if (customWorkouts[customKey]) {
+      const customWorkout = customWorkouts[customKey];
+      session = {
+        ...customWorkout,
+        id: customWorkout.session_id || customWorkout.id,
+        date: customWorkout.date,
+        type: customWorkout.type
+      };
+    }
+  }
+  
+  // If still not found, return early
+  if (!session) {
+    console.error('Session not found:', sessionId, weekNum);
+    return;
+  }
 
   const data = {
     session_id: sessionId,
@@ -827,7 +925,22 @@ async function handleDrop(event) {
   
   // Get the original session to check its original date
   const week = TrainingPlanAPI.getWeek(weekNum);
-  const session = week.sessions.find(s => s.id === sessionId);
+  let session = week.sessions.find(s => s.id === sessionId);
+  
+  // If not found in generated plan, check if it's a custom workout
+  let originalDate = null;
+  let isCustomWorkout = false;
+  
+  if (!session) {
+    const customKey = `${sessionId}_${weekNum}`;
+    if (customWorkouts[customKey]) {
+      session = customWorkouts[customKey];
+      originalDate = session.date;
+      isCustomWorkout = true;
+    }
+  } else {
+    originalDate = session.date;
+  }
   
   if (!session) {
     draggedSession = null;
@@ -835,37 +948,56 @@ async function handleDrop(event) {
   }
   
   // Check if we're moving back to the original day
-  const isMovingBackToOriginal = session.date === newDate;
+  const isMovingBackToOriginal = originalDate === newDate;
   
   try {
-    if (isMovingBackToOriginal) {
-      // Delete the override to restore original schedule
-      await fetch(`/api/schedule-overrides/${sessionId}/${weekNum}`, {
-        method: 'DELETE'
-      });
+    if (isCustomWorkout) {
+      // For custom workouts, update the workout itself with the new date
+      const customKey = `${sessionId}_${weekNum}`;
+      const updatedWorkout = {
+        ...customWorkouts[customKey],
+        date: newDate,
+        day: dayContainer.dataset.dayName
+      };
       
-      // Remove from local state
-      const key = `${sessionId}_${weekNum}`;
-      delete scheduleOverrides[key];
-    } else {
-      // Save the schedule override to the backend
-      await fetch('/api/schedule-overrides', {
+      await fetch('/api/custom-workouts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(updatedWorkout)
+      });
+      
+      customWorkouts[customKey] = updatedWorkout;
+    } else {
+      // For generated plan workouts, use schedule overrides
+      if (isMovingBackToOriginal) {
+        // Delete the override to restore original schedule
+        await fetch(`/api/schedule-overrides/${sessionId}/${weekNum}`, {
+          method: 'DELETE'
+        });
+        
+        // Remove from local state
+        const key = `${sessionId}_${weekNum}`;
+        delete scheduleOverrides[key];
+      } else {
+        // Save the schedule override to the backend
+        await fetch('/api/schedule-overrides', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: sessionId,
+            week_number: weekNum,
+            new_date: newDate
+          })
+        });
+        
+        // Update local state
+        const key = `${sessionId}_${weekNum}`;
+        scheduleOverrides[key] = {
           session_id: sessionId,
           week_number: weekNum,
           new_date: newDate
-        })
-      });
-      
-      // Update local state
-      const key = `${sessionId}_${weekNum}`;
-      scheduleOverrides[key] = {
-        session_id: sessionId,
-        week_number: weekNum,
-        new_date: newDate
-      };
+        };
+      }
     }
     
     // Re-render the calendar
@@ -896,4 +1028,249 @@ async function restoreOriginalSchedule(sessionId, weekNum) {
     console.error('Failed to restore original schedule', err);
     alert('Failed to restore original schedule. Please try again.');
   }
+}
+
+// ============================================
+// WORKOUT EDITOR
+// ============================================
+
+function openWorkoutEditor(sessionId, weekNum, date, dayName) {
+  currentEditingSession = { sessionId, weekNum, date, dayName };
+  
+  const modal = document.getElementById('workoutEditorModal');
+  const title = document.getElementById('workoutEditorTitle');
+  const form = document.getElementById('workoutEditorForm');
+  const resetSection = document.getElementById('resetToOriginalSection');
+  const deleteSection = document.getElementById('deleteWorkoutSection');
+  
+  // Check if this is editing existing or creating new
+  if (sessionId) {
+    // Editing existing session
+    title.textContent = 'Edit Workout';
+    
+    // Get the session data (custom or generated)
+    const week = TrainingPlanAPI.getWeek(weekNum);
+    let session = week.sessions.find(s => s.id === sessionId);
+    let isGeneratedPlanSession = !!session;
+    
+    // Check if there's a custom version
+    const customKey = `${sessionId}_${weekNum}`;
+    if (customWorkouts[customKey]) {
+      session = { ...session, ...customWorkouts[customKey] };
+    }
+    
+    // If not found in generated plan, it's a completely custom workout
+    if (!isGeneratedPlanSession && customWorkouts[customKey]) {
+      session = customWorkouts[customKey];
+      isGeneratedPlanSession = false;
+    }
+    
+    // Show reset button only if it's a modified generated workout
+    // Show delete button only if it's a completely custom-added workout
+    if (isGeneratedPlanSession) {
+      resetSection.classList.remove('hidden');
+      deleteSection.classList.add('hidden');
+    } else {
+      resetSection.classList.add('hidden');
+      deleteSection.classList.remove('hidden');
+    }
+    
+    if (session) {
+      populateWorkoutEditor(session);
+    }
+  } else {
+    // Creating new session
+    title.textContent = 'Add New Workout';
+    resetSection.classList.add('hidden');
+    deleteSection.classList.add('hidden');
+    form.reset();
+    
+    // Set default values
+    document.getElementById('editWorkoutType').value = 'run';
+    document.getElementById('editTitle').value = '';
+    document.getElementById('editDescription').value = '';
+    document.getElementById('editDuration').value = '';
+    updateTypeSpecificFields();
+  }
+  
+  modal.classList.remove('hidden');
+}
+
+function populateWorkoutEditor(session) {
+  document.getElementById('editWorkoutType').value = session.type;
+  document.getElementById('editTitle').value = session.title;
+  document.getElementById('editDescription').value = session.description || '';
+  document.getElementById('editDuration').value = session.duration || session.totalDuration || '';
+  
+  // Handle brick sessions
+  if (session.type === 'brick') {
+    if (session.bike) {
+      document.getElementById('editBikeDuration').value = session.bike.duration || '';
+      document.getElementById('editBikePower').value = session.bike.power || '';
+    }
+    if (session.run) {
+      document.getElementById('editRunDuration').value = session.run.duration || '';
+      document.getElementById('editRunPace').value = session.run.pace || '';
+    }
+  }
+  
+  // Handle target values
+  if (session.target) {
+    document.getElementById('editTargetDistance').value = session.target.distance ? `${session.target.distance}km` : '';
+    document.getElementById('editTargetPace').value = session.target.pace || session.target.power || '';
+  }
+  
+  updateTypeSpecificFields();
+}
+
+function updateTypeSpecificFields() {
+  const type = document.getElementById('editWorkoutType').value;
+  const brickFields = document.getElementById('brickFields');
+  const targetFields = document.getElementById('targetFields');
+  
+  // Show/hide brick fields
+  if (type === 'brick') {
+    brickFields.classList.remove('hidden');
+    targetFields.classList.add('hidden');
+  } else if (type === 'rest' || type === 'recovery') {
+    brickFields.classList.add('hidden');
+    targetFields.classList.add('hidden');
+  } else {
+    brickFields.classList.add('hidden');
+    targetFields.classList.remove('hidden');
+  }
+}
+
+// Listen for type changes
+document.addEventListener('DOMContentLoaded', () => {
+  const typeSelect = document.getElementById('editWorkoutType');
+  if (typeSelect) {
+    typeSelect.addEventListener('change', updateTypeSpecificFields);
+  }
+});
+
+async function saveCustomWorkout() {
+  if (!currentEditingSession) return;
+  
+  const { sessionId, weekNum, date, dayName } = currentEditingSession;
+  
+  // Get form values
+  const type = document.getElementById('editWorkoutType').value;
+  const title = document.getElementById('editTitle').value;
+  const description = document.getElementById('editDescription').value;
+  const duration = parseInt(document.getElementById('editDuration').value) || 0;
+  
+  // Build the workout object
+  const workout = {
+    session_id: sessionId || `custom_${Date.now()}`,
+    week_number: weekNum,
+    date: date,
+    day: dayName,
+    type: type,
+    title: title,
+    description: description,
+    duration: duration,
+    isCustom: true
+  };
+  
+  // Handle brick-specific data
+  if (type === 'brick') {
+    const bikeDuration = parseInt(document.getElementById('editBikeDuration').value) || 0;
+    const bikePower = document.getElementById('editBikePower').value;
+    const runDuration = parseInt(document.getElementById('editRunDuration').value) || 0;
+    const runPace = document.getElementById('editRunPace').value;
+    
+    workout.bike = bikeDuration > 0 ? { duration: bikeDuration, power: bikePower } : null;
+    workout.run = runDuration > 0 ? { duration: runDuration, pace: runPace } : null;
+    workout.totalDuration = bikeDuration + runDuration;
+  }
+  
+  // Handle target values
+  if (type !== 'brick' && type !== 'rest' && type !== 'recovery') {
+    const targetDistance = document.getElementById('editTargetDistance').value;
+    const targetPace = document.getElementById('editTargetPace').value;
+    
+    if (targetDistance || targetPace) {
+      workout.target = {
+        distance: targetDistance ? parseFloat(targetDistance) : null,
+        pace: targetPace || null,
+        power: targetPace || null
+      };
+    }
+  }
+  
+  try {
+    // Save to backend
+    await fetch('/api/custom-workouts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(workout)
+    });
+    
+    // Update local state
+    const key = `${workout.session_id}_${weekNum}`;
+    customWorkouts[key] = workout;
+    
+    // Close editor and reload
+    closeWorkoutEditor();
+    loadWeek(currentWeek);
+  } catch (err) {
+    console.error('Failed to save custom workout', err);
+    alert('Failed to save workout. Please try again.');
+  }
+}
+
+async function resetToOriginalWorkout() {
+  if (!currentEditingSession || !currentEditingSession.sessionId) return;
+  
+  const { sessionId, weekNum } = currentEditingSession;
+  
+  if (!confirm('Reset this workout to the original plan?')) return;
+  
+  try {
+    await fetch(`/api/custom-workouts/${sessionId}/${weekNum}`, {
+      method: 'DELETE'
+    });
+    
+    // Remove from local state
+    const key = `${sessionId}_${weekNum}`;
+    delete customWorkouts[key];
+    
+    // Close editor and reload
+    closeWorkoutEditor();
+    loadWeek(currentWeek);
+  } catch (err) {
+    console.error('Failed to reset workout', err);
+    alert('Failed to reset workout. Please try again.');
+  }
+}
+
+async function deleteCustomWorkout() {
+  if (!currentEditingSession || !currentEditingSession.sessionId) return;
+  
+  const { sessionId, weekNum } = currentEditingSession;
+  
+  if (!confirm('Are you sure you want to delete this workout? This cannot be undone.')) return;
+  
+  try {
+    await fetch(`/api/custom-workouts/${sessionId}/${weekNum}`, {
+      method: 'DELETE'
+    });
+    
+    // Remove from local state
+    const key = `${sessionId}_${weekNum}`;
+    delete customWorkouts[key];
+    
+    // Close editor and reload
+    closeWorkoutEditor();
+    loadWeek(currentWeek);
+  } catch (err) {
+    console.error('Failed to delete workout', err);
+    alert('Failed to delete workout. Please try again.');
+  }
+}
+
+function closeWorkoutEditor() {
+  document.getElementById('workoutEditorModal').classList.add('hidden');
+  currentEditingSession = null;
 }

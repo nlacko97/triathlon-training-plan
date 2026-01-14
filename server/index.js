@@ -327,6 +327,50 @@ app.delete('/api/schedule-overrides/:sessionId/:weekNumber', (req, res) => {
 });
 
 // ============================================
+// CUSTOM WORKOUTS
+// ============================================
+
+// Get all custom workouts
+app.get('/api/custom-workouts', (req, res) => {
+  try {
+    const customWorkouts = dbHelpers.getAllCustomWorkouts();
+    res.json(customWorkouts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get specific custom workout
+app.get('/api/custom-workouts/:sessionId/:weekNumber', (req, res) => {
+  try {
+    const workout = dbHelpers.getCustomWorkout(req.params.sessionId, parseInt(req.params.weekNumber));
+    res.json(workout || {});
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Create or update a custom workout
+app.post('/api/custom-workouts', (req, res) => {
+  try {
+    dbHelpers.upsertCustomWorkout(req.body);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a custom workout (restore to generated plan)
+app.delete('/api/custom-workouts/:sessionId/:weekNumber', (req, res) => {
+  try {
+    const result = dbHelpers.deleteCustomWorkout(req.params.sessionId, parseInt(req.params.weekNumber));
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================
 // STATISTICS
 // ============================================
 
