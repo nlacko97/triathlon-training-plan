@@ -46,33 +46,15 @@
 </head>
 <body class="h-full bg-surface-950 text-surface-200 antialiased">
     <div class="min-h-full flex flex-col pb-20 sm:pb-0">
-        <!-- Nav - Consistent with other pages -->
-        <nav class="sticky top-0 z-50 nav-glass border-b border-surface-800">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between h-14">
-                    <!-- Logo -->
-                    <a href="/" class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-surface-800 flex items-center justify-center">
-                            <span class="text-sm">🏊</span>
-                        </div>
-                        <div class="hidden sm:block">
-                            <h1 class="font-semibold text-surface-100 text-sm">TriPlan</h1>
-                            <p class="text-xs text-surface-500 -mt-0.5">70.3 Zell am See</p>
-                        </div>
-                    </a>
-                    
-                    <!-- Desktop Nav - Centered -->
-                    <div class="hidden sm:flex items-center gap-1 bg-surface-900/50 rounded-lg p-1">
-                        <a href="/" class="px-4 py-1.5 text-sm font-medium rounded-md text-surface-400 hover:text-surface-200 hover:bg-surface-800/50 transition">Plan</a>
-                        <a href="/profile" class="px-4 py-1.5 text-sm font-medium rounded-md text-surface-400 hover:text-surface-200 hover:bg-surface-800/50 transition">Profile</a>
-                        <a href="/stats" class="px-4 py-1.5 text-sm font-medium rounded-md bg-surface-700 text-surface-100">Stats</a>
-                    </div>
-                    
-                    <!-- Spacer for balance -->
-                    <div class="w-8 sm:w-20"></div>
-                </div>
-            </div>
-        </nav>
+         <!-- NAV_PLACEHOLDER -->
+        <script>
+            // Set navbar subtitle and right side content for this page
+            document.addEventListener('DOMContentLoaded', function() {
+                const subtitle = document.getElementById('navbarSubtitle');
+                if (subtitle) subtitle.textContent = 'Progress & Statistics';
+                setActiveNav('stats');
+            });
+        </script>
 
         <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
             <!-- Summary Cards -->

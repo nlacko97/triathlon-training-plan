@@ -53,34 +53,16 @@
     </style>
 </head>
 <body class="h-full bg-surface-950 text-surface-200 antialiased">
-    <div class="min-h-full flex flex-col pb-20 sm:pb-0">
-        <!-- Nav - Consistent with Plan page -->
-        <nav class="sticky top-0 z-50 nav-glass border-b border-surface-800">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between h-14">
-                    <!-- Logo -->
-                    <a href="/" class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-surface-800 flex items-center justify-center">
-                            <span class="text-sm">🏊</span>
-                        </div>
-                        <div class="hidden sm:block">
-                            <h1 class="font-semibold text-surface-100 text-sm">TriPlan</h1>
-                            <p class="text-xs text-surface-500 -mt-0.5">70.3 Zell am See</p>
-                        </div>
-                    </a>
-                    
-                    <!-- Desktop Nav - Centered -->
-                    <div class="hidden sm:flex items-center gap-1 bg-surface-900/50 rounded-lg p-1">
-                        <a href="/" class="px-4 py-1.5 text-sm font-medium rounded-md text-surface-400 hover:text-surface-200 hover:bg-surface-800/50 transition">Plan</a>
-                        <a href="/profile" class="px-4 py-1.5 text-sm font-medium rounded-md bg-surface-700 text-surface-100">Profile</a>
-                        <a href="/stats" class="px-4 py-1.5 text-sm font-medium rounded-md text-surface-400 hover:text-surface-200 hover:bg-surface-800/50 transition">Stats</a>
-                    </div>
-                    
-                    <!-- Spacer for balance -->
-                    <div class="w-8 sm:w-20"></div>
-                </div>
-            </div>
-        </nav>
+     <div class="min-h-full flex flex-col pb-20 sm:pb-0">
+        <!-- NAV_PLACEHOLDER -->
+        <script>
+            // Set navbar subtitle and right side content for this page
+            document.addEventListener('DOMContentLoaded', function() {
+                const subtitle = document.getElementById('navbarSubtitle');
+                if (subtitle) subtitle.textContent = 'Athlete Profile';
+                setActiveNav('profile');
+            });
+        </script>
 
         <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
             <!-- Performance Metrics -->
@@ -212,6 +194,95 @@
                 </div>
             </div>
 
+            <!-- Intervals.icu Integration -->
+            <div class="card rounded-xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-base font-semibold text-surface-100">Intervals.icu Integration</h2>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-surface-500" id="intervalsStatus">Not connected</span>
+                        <div class="w-2 h-2 rounded-full bg-surface-600" id="intervalsStatusDot"></div>
+                    </div>
+                </div>
+                
+                <div id="intervalsDisconnected" class="space-y-4">
+                    <div class="text-sm text-surface-400">
+                        Connect your intervals.icu account to sync workouts and view detailed training data.
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-surface-400 mb-1">Athlete ID</label>
+                            <input type="text" id="intervalsAthleteId" placeholder="Your intervals.icu athlete ID" 
+                                   class="w-full rounded-md text-sm px-3 py-2 border">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-surface-400 mb-1">API Key</label>
+                            <input type="password" id="intervalsApiKey" placeholder="Your intervals.icu API key" 
+                                   class="w-full rounded-md text-sm px-3 py-2 border">
+                        </div>
+                    </div>
+                    <div class="bg-surface-800/30 rounded-lg p-3">
+                        <p class="text-xs text-surface-400 mb-2">How to get your credentials:</p>
+                        <ol class="text-xs text-surface-500 space-y-1 list-decimal list-inside">
+                            <li>Log in to intervals.icu</li>
+                            <li>Go to Settings → API</li>
+                            <li>Copy your Athlete ID and generate an API key</li>
+                            <li>Enter them above and click Connect</li>
+                        </ol>
+                    </div>
+                    <button onclick="connectIntervalsIcu()" 
+                            class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-md text-sm font-medium transition">
+                        Connect to intervals.icu
+                    </button>
+                </div>
+
+                <div id="intervalsConnected" class="hidden space-y-4">
+                    <div id="intervalsAthleteInfo" class="bg-surface-800/30 rounded-lg p-4">
+                        <!-- Athlete info will be populated here -->
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div class="text-center p-3 bg-surface-800/30 rounded-lg">
+                            <div class="text-xl font-bold text-surface-100" id="intervalsWorkoutCount">0</div>
+                            <div class="text-xs text-surface-500 mt-0.5">Workouts Synced</div>
+                        </div>
+                        <div class="text-center p-3 bg-surface-800/30 rounded-lg">
+                            <div class="text-lg font-bold text-surface-100" id="intervalsLastSync">Never</div>
+                            <div class="text-xs text-surface-500 mt-0.5">Last Sync</div>
+                        </div>
+                        <div class="text-center p-3 bg-surface-800/30 rounded-lg">
+                            <div class="text-sm font-bold text-surface-100" id="intervalsSyncStatus">Connected</div>
+                            <div class="text-xs text-surface-500 mt-0.5">Status</div>
+                        </div>
+                        <div class="text-center p-3 bg-surface-800/30 rounded-lg">
+                            <button onclick="openCalendar()" class="w-full bg-surface-700 hover:bg-surface-600 text-surface-100 py-1.5 rounded text-xs font-medium transition">
+                                View Calendar
+                            </button>
+                            <div class="text-xs text-surface-500 mt-0.5">Actions</div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                         <button onclick="syncIntervalsWorkouts()" 
+                                 class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded-md text-sm font-medium transition">
+                             Sync Workouts
+                         </button>
+                         <button onclick="openIntervalsSettings()" 
+                                 class="flex-1 bg-surface-700 hover:bg-surface-600 text-surface-100 py-2 rounded-md text-sm font-medium transition">
+                             Settings
+                         </button>
+                         <button onclick="clearAllIntervalsWorkouts()" 
+                                 class="px-4 py-2 rounded-md text-sm font-medium border border-red-500/30 text-red-500/70 hover:bg-red-500/10 transition"
+                                 title="Delete all cached workouts">
+                             Clear All
+                         </button>
+                         <button onclick="disconnectIntervalsIcu()" 
+                                 class="px-4 py-2 rounded-md text-sm font-medium border border-red-500/30 text-red-500/70 hover:bg-red-500/10 transition">
+                             Disconnect
+                         </button>
+                     </div>
+                </div>
+            </div>
+
             <!-- Athlete Info -->
             <div class="card rounded-xl p-5">
                 <h2 class="text-base font-semibold text-surface-100 mb-4">Athlete Info</h2>
@@ -248,6 +319,10 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     <span class="text-xs font-medium">Profile</span>
                 </a>
+                <a href="/calendar" class="flex flex-col items-center gap-0.5 px-4 py-1.5 text-surface-500">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span class="text-xs font-medium">Calendar</span>
+                </a>
                 <a href="/stats" class="flex flex-col items-center gap-0.5 px-4 py-1.5 text-surface-500">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     <span class="text-xs font-medium">Stats</span>
@@ -274,10 +349,12 @@
 
     <script>
         let metrics = null;
+        let intervalsConfig = null;
 
         document.addEventListener('DOMContentLoaded', async () => {
             await loadProfile();
             await loadHistory();
+            await loadIntervalsConfig();
         });
 
         async function loadProfile() {
@@ -600,6 +677,385 @@
                 });
                 alert('Saved!');
             } catch (e) { alert('Error'); }
+        }
+
+        // Intervals.icu Integration Functions
+        async function loadIntervalsConfig() {
+            try {
+                const res = await fetch('/api/intervals-icu/config');
+                if (res.ok) {
+                    intervalsConfig = await res.json();
+                    updateIntervalsUI();
+                }
+            } catch (e) {
+                console.error('Error loading intervals.icu config:', e);
+            }
+        }
+
+        function updateIntervalsUI() {
+            const disconnectedSection = document.getElementById('intervalsDisconnected');
+            const connectedSection = document.getElementById('intervalsConnected');
+            const statusText = document.getElementById('intervalsStatus');
+            const statusDot = document.getElementById('intervalsStatusDot');
+
+            if (intervalsConfig?.connected) {
+                disconnectedSection.classList.add('hidden');
+                connectedSection.classList.remove('hidden');
+                statusText.textContent = 'Connected';
+                statusDot.className = 'w-2 h-2 rounded-full bg-green-500';
+
+                // Update athlete info
+                if (intervalsConfig.athleteInfo) {
+                    const athleteInfo = intervalsConfig.athleteInfo;
+                    document.getElementById('intervalsAthleteInfo').innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-surface-700 flex items-center justify-center text-xl">
+                                ${athleteInfo.name ? athleteInfo.name.charAt(0).toUpperCase() : '👤'}
+                            </div>
+                            <div>
+                                <div class="font-semibold text-surface-100">${athleteInfo.name || 'Athlete'}</div>
+                                <div class="text-xs text-surface-500">ID: ${intervalsConfig.athleteId}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Update workout count
+                const workoutCount = intervalsConfig.workouts?.length || 0;
+                document.getElementById('intervalsWorkoutCount').textContent = workoutCount;
+
+                // Update last sync
+                if (intervalsConfig.lastSync) {
+                    const lastSync = new Date(intervalsConfig.lastSync);
+                    const now = new Date();
+                    const diffHours = Math.floor((now - lastSync) / (1000 * 60 * 60));
+                    let syncText = diffHours === 0 ? 'Just now' :
+                                   diffHours < 24 ? `${diffHours}h ago` :
+                                   `${Math.floor(diffHours / 24)}d ago`;
+                    document.getElementById('intervalsLastSync').textContent = syncText;
+                } else {
+                    document.getElementById('intervalsLastSync').textContent = 'Never';
+                }
+
+                // Update sync status
+                const statusMap = {
+                    'connected': 'Connected',
+                    'syncing': 'Syncing...',
+                    'error': 'Error'
+                };
+                document.getElementById('intervalsSyncStatus').textContent = statusMap[intervalsConfig.syncStatus] || 'Connected';
+            } else {
+                disconnectedSection.classList.remove('hidden');
+                connectedSection.classList.add('hidden');
+                statusText.textContent = 'Not connected';
+                statusDot.className = 'w-2 h-2 rounded-full bg-surface-600';
+            }
+        }
+
+        async function connectIntervalsIcu() {
+            const athleteId = document.getElementById('intervalsAthleteId').value.trim();
+            const apiKey = document.getElementById('intervalsApiKey').value.trim();
+
+            if (!athleteId || !apiKey) {
+                alert('Please enter both Athlete ID and API Key');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/intervals-icu/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ athleteId, apiKey })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert('Successfully connected to intervals.icu!');
+                    await loadIntervalsConfig();
+                    // Auto-sync workouts after connection
+                    await syncIntervalsWorkouts();
+                } else {
+                    alert(`Connection failed: ${data.error || 'Unknown error'}`);
+                }
+            } catch (e) {
+                console.error('Error connecting to intervals.icu:', e);
+                alert('Network error. Please try again.');
+            }
+        }
+
+        async function disconnectIntervalsIcu() {
+            if (!confirm('Are you sure you want to disconnect from intervals.icu? Your cached workouts will be cleared.')) {
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/intervals-icu/disconnect', {
+                    method: 'POST'
+                });
+
+                if (res.ok) {
+                    alert('Disconnected from intervals.icu');
+                    await loadIntervalsConfig();
+                } else {
+                    alert('Error disconnecting');
+                }
+            } catch (e) {
+                console.error('Error disconnecting:', e);
+                alert('Network error. Please try again.');
+            }
+        }
+
+         async function syncIntervalsWorkouts() {
+             if (!intervalsConfig?.connected) {
+                 alert('Please connect to intervals.icu first');
+                 return;
+             }
+
+             const statusEl = document.getElementById('intervalsSyncStatus');
+             const originalStatus = statusEl.textContent;
+             statusEl.textContent = 'Syncing...';
+
+             try {
+                 const res = await fetch('/api/intervals-icu/sync', {
+                     method: 'POST'
+                 });
+
+                 const data = await res.json();
+
+                 if (res.ok) {
+                     // Format message based on sync result
+                     let message = `Sync complete!`;
+                     if (data.added !== undefined && data.updated !== undefined) {
+                         message = `Added ${data.added} new, updated ${data.updated} workouts`;
+                     } else if (data.syncedWorkouts) {
+                         message = `Synced ${data.syncedWorkouts} workouts`;
+                     }
+                     message += ` from ${data.dateRange.startDate} to ${data.dateRange.endDate}`;
+                     alert(message);
+                     await loadIntervalsConfig();
+                 } else {
+                     alert(`Sync failed: ${data.error || 'Unknown error'}`);
+                     statusEl.textContent = originalStatus;
+                 }
+             } catch (e) {
+                 console.error('Error syncing workouts:', e);
+                 alert('Network error. Please try again.');
+                 statusEl.textContent = originalStatus;
+             }
+         }
+
+         async function clearAllIntervalsWorkouts() {
+             const workoutCount = intervalsConfig?.workouts?.length || 0;
+             if (workoutCount === 0) {
+                 alert('No workouts to clear');
+                 return;
+             }
+
+             const confirmed = confirm(
+                 `Are you sure you want to delete all ${workoutCount} cached workouts? ` +
+                 `This action cannot be undone. You can re-sync them from intervals.icu afterwards.`
+             );
+
+             if (!confirmed) {
+                 return;
+             }
+
+             try {
+                 const res = await fetch('/api/intervals-icu/clear-workouts', {
+                     method: 'POST'
+                 });
+
+                 const data = await res.json();
+
+                 if (res.ok) {
+                     alert(`Cleared ${data.clearedCount} workouts`);
+                     await loadIntervalsConfig();
+                 } else {
+                     alert(`Error: ${data.error || 'Failed to clear workouts'}`);
+                 }
+             } catch (e) {
+                 console.error('Error clearing workouts:', e);
+                 alert('Network error. Please try again.');
+             }
+         }
+
+        function openCalendar() {
+            window.location.href = '/calendar';
+        }
+
+        function openIntervalsSettings() {
+            const settings = intervalsConfig?.syncSettings || {};
+            const autoSync = settings.autoSync || false;
+            const syncInterval = settings.syncInterval || 24;
+            const dateRange = settings.dateRange || 30;
+            const useCustomDates = settings.useCustomDates || false;
+            const customStartDate = settings.customStartDate || '';
+            
+            const html = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="settingsAutoSync" ${autoSync ? 'checked' : ''} 
+                                   class="w-4 h-4 rounded border-surface-600">
+                            <span class="text-sm text-surface-200">Enable Auto-Sync</span>
+                        </label>
+                        <p class="text-xs text-surface-500 mt-1 ml-6">Automatically sync workouts in the background</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs text-surface-400 mb-1">Sync Interval (hours)</label>
+                        <select id="settingsSyncInterval" class="w-full rounded-md text-sm px-3 py-2 border">
+                            <option value="1" ${syncInterval === 1 ? 'selected' : ''}>Every hour</option>
+                            <option value="6" ${syncInterval === 6 ? 'selected' : ''}>Every 6 hours</option>
+                            <option value="12" ${syncInterval === 12 ? 'selected' : ''}>Every 12 hours</option>
+                            <option value="24" ${syncInterval === 24 ? 'selected' : ''}>Every 24 hours (recommended)</option>
+                            <option value="48" ${syncInterval === 48 ? 'selected' : ''}>Every 48 hours</option>
+                        </select>
+                    </div>
+                    
+                    <div class="border-t border-surface-800 pt-4">
+                        <label class="block text-sm font-medium text-surface-200 mb-3">Sync Date Range</label>
+                        
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="dateRangeType" value="relative" 
+                                       ${!useCustomDates ? 'checked' : ''} 
+                                       onchange="toggleDateRangeType(false)"
+                                       class="w-4 h-4">
+                                <span class="text-sm text-surface-200">Last N days (relative)</span>
+                            </label>
+                            
+                            <div id="relativeDateRange" class="ml-6 ${!useCustomDates ? '' : 'hidden'}">
+                                <select id="settingsDateRange" class="w-full rounded-md text-sm px-3 py-2 border">
+                                    <option value="7" ${dateRange === 7 ? 'selected' : ''}>Last 7 days</option>
+                                    <option value="14" ${dateRange === 14 ? 'selected' : ''}>Last 14 days</option>
+                                    <option value="30" ${dateRange === 30 ? 'selected' : ''}>Last 30 days (recommended)</option>
+                                    <option value="60" ${dateRange === 60 ? 'selected' : ''}>Last 60 days</option>
+                                    <option value="90" ${dateRange === 90 ? 'selected' : ''}>Last 90 days</option>
+                                    <option value="180" ${dateRange === 180 ? 'selected' : ''}>Last 180 days (6 months)</option>
+                                    <option value="365" ${dateRange === 365 ? 'selected' : ''}>Last 365 days (1 year)</option>
+                                </select>
+                            </div>
+                            
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="dateRangeType" value="custom" 
+                                       ${useCustomDates ? 'checked' : ''} 
+                                       onchange="toggleDateRangeType(true)"
+                                       class="w-4 h-4">
+                                <span class="text-sm text-surface-200">Custom date range</span>
+                            </label>
+                            
+                            <div id="customDateRange" class="ml-6 space-y-2 ${useCustomDates ? '' : 'hidden'}">
+                                <div>
+                                    <label class="block text-xs text-surface-400 mb-1">Start Date (sync from this date onwards)</label>
+                                    <input type="date" id="settingsCustomStartDate" value="${customStartDate}"
+                                           class="w-full rounded-md text-sm px-3 py-2 border">
+                                </div>
+                                <p class="text-xs text-surface-500">Workouts will be synced from this date until today</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2 pt-4 border-t border-surface-800">
+                        <button onclick="saveIntervalsSettings()" class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded-md text-sm font-medium transition">
+                            Save Settings
+                        </button>
+                        <button onclick="closeIntervalsSettings()" class="px-4 py-2 rounded-md text-sm font-medium border border-surface-600 text-surface-300 hover:bg-surface-800 transition">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Create modal
+            const modal = document.createElement('div');
+            modal.id = 'intervalsSettingsModal';
+            modal.className = 'fixed inset-0 z-50';
+            modal.innerHTML = `
+                <div class="absolute inset-0 bg-surface-950/90 backdrop-blur-sm" onclick="closeIntervalsSettings()"></div>
+                <div class="absolute inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-md">
+                    <div class="h-full sm:h-auto card rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-full border-surface-700">
+                        <div class="flex items-center justify-between p-4 border-b border-surface-800">
+                            <h3 class="text-base font-semibold text-surface-100">Sync Settings</h3>
+                            <button onclick="closeIntervalsSettings()" class="w-8 h-8 rounded-lg hover:bg-surface-800 flex items-center justify-center transition text-surface-400 hover:text-surface-200">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        <div class="flex-1 overflow-y-auto p-4 scrollbar-thin">
+                            ${html}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeIntervalsSettings() {
+            const modal = document.getElementById('intervalsSettingsModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        function toggleDateRangeType(useCustom) {
+            const relativeDiv = document.getElementById('relativeDateRange');
+            const customDiv = document.getElementById('customDateRange');
+            
+            if (useCustom) {
+                relativeDiv.classList.add('hidden');
+                customDiv.classList.remove('hidden');
+            } else {
+                relativeDiv.classList.remove('hidden');
+                customDiv.classList.add('hidden');
+            }
+        }
+        
+        async function saveIntervalsSettings() {
+            const autoSync = document.getElementById('settingsAutoSync').checked;
+            const syncInterval = parseInt(document.getElementById('settingsSyncInterval').value);
+            
+            const useCustomDates = document.querySelector('input[name="dateRangeType"]:checked').value === 'custom';
+            const dateRange = useCustomDates ? null : parseInt(document.getElementById('settingsDateRange').value);
+            const customStartDate = useCustomDates ? document.getElementById('settingsCustomStartDate').value : null;
+            
+            if (useCustomDates && !customStartDate) {
+                alert('Please select a start date for custom date range');
+                return;
+            }
+            
+            try {
+                // Save sync settings
+                await fetch('/api/intervals-icu/sync-settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        autoSync,
+                        syncInterval,
+                        dateRange,
+                        useCustomDates,
+                        customStartDate
+                    })
+                });
+                
+                // Enable/disable auto-sync
+                await fetch('/api/intervals-icu/auto-sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        enabled: autoSync,
+                        intervalHours: syncInterval
+                    })
+                });
+                
+                alert('Settings saved successfully!');
+                await loadIntervalsConfig();
+                closeIntervalsSettings();
+            } catch (e) {
+                console.error('Error saving settings:', e);
+                alert('Error saving settings. Please try again.');
+            }
         }
 
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTest(); });

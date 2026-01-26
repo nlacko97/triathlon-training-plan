@@ -37,7 +37,26 @@ const defaultData = {
   weeklyCheckins: {},
   raceResults: [],
   sessionScheduleOverrides: {},
-  customWorkouts: {}
+  customWorkouts: {},
+  intervalsIcu: {
+    connected: false,
+    athleteId: null,
+    apiKey: null,
+    lastSync: null,
+    syncStatus: 'disconnected', // disconnected, connected, syncing, error
+    syncError: null,
+    athleteInfo: null,
+    workouts: [], // Cached workouts from intervals.icu
+    syncSettings: {
+      autoSync: false,
+      syncInterval: 24, // hours
+      importNewWorkouts: true,
+      updateExistingWorkouts: true,
+      dateRange: 30, // days to sync (when using relative dates)
+      useCustomDates: false, // whether to use custom date range
+      customStartDate: null // custom start date (YYYY-MM-DD)
+    }
+  }
 };
 
 // Ensure data directory exists
@@ -326,7 +345,176 @@ const dbHelpers = {
       return { success: true };
     }
     return { success: false };
-  }
+  },
+
+  // Intervals.icu integration
+  getIntervalsIcuConfig: () => {
+    return data.intervalsIcu;
+  },
+
+  updateIntervalsIcuConfig: (config) => {
+    data.intervalsIcu = {
+      ...data.intervalsIcu,
+      ...config,
+      updated_at: new Date().toISOString()
+    };
+    saveData(data);
+    return { success: true };
+  },
+
+  setIntervalsIcuCredentials: (athleteId, apiKey) => {
+    data.intervalsIcu.athleteId = athleteId;
+    data.intervalsIcu.apiKey = apiKey;
+    data.intervalsIcu.connected = !!(athleteId && apiKey);
+    data.intervalsIcu.syncStatus = data.intervalsIcu.connected ? 'connected' : 'disconnected';
+    data.intervalsIcu.updated_at = new Date().toISOString();
+    saveData(data);
+    return { success: true };
+  },
+
+  updateIntervalsIcuSyncStatus: (status, error = null) => {
+    data.intervalsIcu.syncStatus = status;
+    data.intervalsIcu.syncError = error;
+    data.intervalsIcu.lastSync = status === 'connected' ? new Date().toISOString() : data.intervalsIcu.lastSync;
+    data.intervalsIcu.updated_at = new Date().toISOString();
+    saveData(data);
+    return { success: true };
+  },
+
+  setIntervalsIcuAthleteInfo: (athleteInfo) => {
+    data.intervalsIcu.athleteInfo = athleteInfo;
+    data.intervalsIcu.updated_at = new Date().toISOString();
+    saveData(data);
+    return { success: true };
+  },
+
+  setIntervalsIcuWorkouts: (workouts) => {
+    data.intervalsIcu.workouts = workouts;
+    data.intervalsIcu.updated_at = new Date().toISOString();
+    saveData(data);
+    return { success: true };
+  },
+
+  getIntervalsIcuWorkouts: (startDate = null, endDate = null) => {
+    let workouts = data.intervalsIcu.workouts || [];
+    
+    if (startDate || endDate) {
+      workouts = workouts.filter(w => {
+        const workoutDate = w.date;
+        if (startDate && workoutDate < startDate) return false;
+        if (endDate && workoutDate > endDate) return false;
+        return true;
+      });
+    }
+    
+    return workouts.sort((a, b) => new Date(b.date) - new Date(a.date));
+  },
+
+  getIntervalsIcuWorkout: (workoutId) => {
+    return data.intervalsIcu.workouts?.find(w => w.id === workoutId || w.external_id === workoutId) || null;
+  },
+
+   updateIntervalsIcuSyncSettings: (settings) => {
+     data.intervalsIcu.syncSettings = {
+       ...data.intervalsIcu.syncSettings,
+       ...settings
+     };
+     data.intervalsIcu.updated_at = new Date().toISOString();
+     saveData(data);
+     return { success: true };
+   },
+
+   /**
+    * Merge new workouts from intervals.icu with existing workouts
+    * - Compares by external_id to avoid duplicates
+    * - Updates existing workouts if data changed
+    * - Never deletes old workouts
+    * @param {Array} newWorkouts - Workouts from intervals.icu API
+    * @returns {Object} Merge result { added, updated, total }
+    */
+   mergeIntervalsIcuWorkouts: (newWorkouts) => {
+     const existing = data.intervalsIcu.workouts || [];
+     const existingMap = new Map();
+     
+     // Create map of existing workouts by external_id for quick lookup
+     existing.forEach(w => {
+       if (w.external_id) {
+         existingMap.set(w.external_id, w);
+       }
+     });
+     
+     let added = 0;
+     let updated = 0;
+     const merged = [...existing]; // Start with existing workouts
+     
+     // Process new workouts
+     newWorkouts.forEach(newWorkout => {
+       const existingWorkout = existingMap.get(newWorkout.external_id);
+       
+       if (existingWorkout) {
+         // Update existing workout (compare JSON strings to detect changes)
+         const newJson = JSON.stringify(newWorkout);
+         const oldJson = JSON.stringify(existingWorkout);
+         
+         if (newJson !== oldJson) {
+           // Find index and update
+           const idx = merged.findIndex(w => w.external_id === newWorkout.external_id);
+           if (idx >= 0) {
+             merged[idx] = {
+               ...newWorkout,
+               syncedAt: new Date().toISOString()
+             };
+             updated++;
+           }
+         }
+       } else {
+         // Add new workout
+         merged.push({
+           ...newWorkout,
+           syncedAt: new Date().toISOString()
+         });
+         added++;
+       }
+     });
+     
+     // Save merged workouts
+     data.intervalsIcu.workouts = merged.sort((a, b) => new Date(b.date) - new Date(a.date));
+     data.intervalsIcu.lastSync = new Date().toISOString();
+     data.intervalsIcu.updated_at = new Date().toISOString();
+     saveData(data);
+     
+     return {
+       added,
+       updated,
+       total: merged.length
+     };
+   },
+
+   /**
+    * Clear all intervals.icu workouts and reset sync timestamps
+    * @returns {Object} Success confirmation
+    */
+   clearAllIntervalsIcuWorkouts: () => {
+     data.intervalsIcu.workouts = [];
+     data.intervalsIcu.lastSync = null;
+     data.intervalsIcu.syncSettings = {
+       ...data.intervalsIcu.syncSettings,
+       lastFullSync: null,
+       lastIncrementalSync: null
+     };
+     data.intervalsIcu.updated_at = new Date().toISOString();
+     saveData(data);
+     return { success: true, cleared: true };
+   },
+
+   /**
+    * Get last sync timestamp to determine incremental sync date range
+    * @returns {string|null} ISO timestamp or null if never synced
+    */
+   getLastSyncDate: () => {
+     const settings = data.intervalsIcu.syncSettings || {};
+     return settings.lastFullSync || data.intervalsIcu.lastSync || null;
+   }
 };
 
 module.exports = { initializeDatabase, dbHelpers };
